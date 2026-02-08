@@ -1,17 +1,13 @@
 {
-  "name": "shared",
+  "name": "@ericas-marshmallows/shared",
   "version": "1.0.0",
-  "description": "Shared TypeScript types and utilities for Erica's Marshmallows",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "watch": "tsc --watch"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "private": true,
   "devDependencies": {
-    "typescript": "~5.9.2"
+    "typescript": "^5.3.3"
   }
 }
