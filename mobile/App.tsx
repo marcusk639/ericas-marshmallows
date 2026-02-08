@@ -1,16 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
+import type { NavigationContainerRef } from '@react-navigation/native';
 import { User as FirebaseUser } from 'firebase/auth';
+import * as Notifications from 'expo-notifications';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { configureGoogleSignIn, onAuthStateChange } from './src/services/auth';
+import { initializePushNotifications } from './src/services/notifications';
 import RootNavigator from './src/navigation/RootNavigator';
+import type { RootTabParamList } from './src/navigation/types';
 
 export default function App() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [configError, setConfigError] = useState<string | null>(null);
+  const navigationRef = useRef<NavigationContainerRef<RootTabParamList>>(null);
 
   useEffect(() => {
     // Configure Google Sign-In
@@ -35,6 +40,30 @@ export default function App() {
 
     return () => unsubscribe();
   }, []);
+
+  // Initialize push notifications when user is authenticated
+  useEffect(() => {
+    if (!user) return;
+
+    const handleNotificationTap = (response: Notifications.NotificationResponse) => {
+      const data = response.notification.request.content.data;
+
+      // Navigate based on notification type
+      if (data.type === 'marshmallow') {
+        navigationRef.current?.navigate('Marshmallows');
+      } else if (data.type === 'checkin') {
+        navigationRef.current?.navigate('CheckIn');
+      } else if (data.type === 'memory') {
+        navigationRef.current?.navigate('Memories');
+      }
+    };
+
+    const cleanup = initializePushNotifications(user.uid, handleNotificationTap);
+
+    return () => {
+      cleanup.then((cleanupFn) => cleanupFn());
+    };
+  }, [user]);
 
   // Show configuration error if Google Sign-In setup failed
   if (configError) {
@@ -71,7 +100,7 @@ export default function App() {
 
   // Main app content with navigation
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <RootNavigator />
       <StatusBar style="auto" />
     </NavigationContainer>
