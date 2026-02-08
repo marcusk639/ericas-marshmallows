@@ -7,6 +7,15 @@ import {
 import * as memoriesService from '../../services/memories';
 import type { Memory, WithId } from '../../../../shared/types';
 
+// Mock expo-image-manipulator
+jest.mock('expo-image-manipulator', () => ({
+  manipulateAsync: jest.fn(),
+  SaveFormat: {
+    JPEG: 'jpeg',
+    PNG: 'png',
+  },
+}));
+
 // Mock the memories service
 jest.mock('../../services/memories');
 

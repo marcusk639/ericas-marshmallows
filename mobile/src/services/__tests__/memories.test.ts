@@ -26,6 +26,16 @@ import {
   updateMemory,
   deleteMemory,
 } from '../memories';
+import * as ImageManipulator from 'expo-image-manipulator';
+
+// Mock expo-image-manipulator
+jest.mock('expo-image-manipulator', () => ({
+  manipulateAsync: jest.fn(),
+  SaveFormat: {
+    JPEG: 'jpeg',
+    PNG: 'png',
+  },
+}));
 
 // Mock Firebase Firestore
 jest.mock('firebase/firestore', () => ({
@@ -142,6 +152,12 @@ describe('memories service', () => {
 
   describe('uploadMemoryPhoto', () => {
     it('should upload photo to Firebase Storage and return URL', async () => {
+      (ImageManipulator.manipulateAsync as jest.Mock).mockResolvedValue({
+        uri: 'file:///optimized/photo.jpg',
+        width: 1920,
+        height: 1080,
+      });
+
       const mockBlob = new Blob(['fake image data'], { type: 'image/jpeg' });
       global.fetch = jest.fn().mockResolvedValue({
         blob: () => Promise.resolve(mockBlob),
@@ -172,6 +188,12 @@ describe('memories service', () => {
     });
 
     it('should handle upload progress callback', async () => {
+      (ImageManipulator.manipulateAsync as jest.Mock).mockResolvedValue({
+        uri: 'file:///optimized/photo.jpg',
+        width: 1920,
+        height: 1080,
+      });
+
       const mockBlob = new Blob(['fake image data'], { type: 'image/jpeg' });
       global.fetch = jest.fn().mockResolvedValue({
         blob: () => Promise.resolve(mockBlob),
@@ -200,6 +222,12 @@ describe('memories service', () => {
     });
 
     it('should throw an error when upload fails', async () => {
+      (ImageManipulator.manipulateAsync as jest.Mock).mockResolvedValue({
+        uri: 'file:///optimized/photo.jpg',
+        width: 1920,
+        height: 1080,
+      });
+
       const mockBlob = new Blob(['fake image data'], { type: 'image/jpeg' });
       global.fetch = jest.fn().mockResolvedValue({
         blob: () => Promise.resolve(mockBlob),

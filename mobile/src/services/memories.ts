@@ -19,6 +19,7 @@ import {
   deleteObject,
 } from 'firebase/storage';
 import { db, storage } from '../config/firebase';
+import { optimizeImage } from './imageOptimization';
 import type { Memory, WithId } from '../../../shared/types';
 
 /**
@@ -58,6 +59,7 @@ export const createMemory = async (
 
 /**
  * Upload a photo to Firebase Storage for a memory
+ * Optimizes the image before upload to reduce storage costs and improve performance
  */
 export const uploadMemoryPhoto = async (
   coupleId: string,
@@ -65,9 +67,19 @@ export const uploadMemoryPhoto = async (
   onProgress?: (progress: number) => void
 ): Promise<string> => {
   try {
-    // Fetch the image from the URI
-    const response = await fetch(uri);
+    // Optimize the image first to reduce file size
+    console.log('Optimizing image before upload...');
+    const optimizedUri = await optimizeImage(uri, {
+      maxWidth: 1920,
+      maxHeight: 1920,
+      quality: 0.8,
+    });
+
+    // Fetch the optimized image
+    const response = await fetch(optimizedUri);
     const blob = await response.blob();
+
+    console.log('Image optimized, uploading to storage...');
 
     // Create a unique filename
     const filename = `${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
