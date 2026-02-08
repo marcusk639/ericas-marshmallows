@@ -1,75 +1,9 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper functions
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-
-    function getUserData() {
-      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid));
-      return userData.data != null ? userData.data : null;
-    }
-
-    function userExists() {
-      return exists(/databases/$(database)/documents/users/$(request.auth.uid));
-    }
-
-    function getUserCoupleId() {
-      let userData = getUserData();
-      return userData != null ? userData.coupleId : null;
-    }
-
-    function isCoupleOwner(coupleId) {
-      return isAuthenticated() && userExists() && getUserCoupleId() == coupleId;
-    }
-
-    // Users collection
-    match /users/{userId} {
-      allow read: if isAuthenticated() && request.auth.uid == userId;
-      allow create: if isAuthenticated() && request.auth.uid == userId;
-      allow update: if isAuthenticated() && request.auth.uid == userId;
-    }
-
-    // Couples collection
-    match /couples/{coupleId} {
-      allow read: if isAuthenticated() && isCoupleOwner(coupleId);
-      allow create: if isAuthenticated() && isCoupleOwner(coupleId);
-      allow update: if isAuthenticated() && isCoupleOwner(coupleId);
-      // Prevent accidental couple deletion - must be done via admin SDK
-    }
-
-    // Marshmallows collection
-    match /marshmallows/{marshmallowId} {
-      allow read: if isAuthenticated() && isCoupleOwner(resource.data.coupleId);
-      allow create: if isAuthenticated() &&
-                      isCoupleOwner(request.resource.data.coupleId) &&
-                      request.resource.data.senderId == request.auth.uid;
-      allow update: if isAuthenticated() && isCoupleOwner(resource.data.coupleId);
-    }
-
-    // Daily check-ins collection
-    match /dailyCheckins/{checkinId} {
-      allow read: if isAuthenticated() && isCoupleOwner(resource.data.coupleId);
-      allow create: if isAuthenticated() &&
-                      isCoupleOwner(request.resource.data.coupleId) &&
-                      request.resource.data.userId == request.auth.uid;
-    }
-
-    // Memories collection
-    match /memories/{memoryId} {
-      allow read: if isAuthenticated() && isCoupleOwner(resource.data.coupleId);
-      allow create: if isAuthenticated() && isCoupleOwner(request.resource.data.coupleId);
-      allow update: if isAuthenticated() &&
-                      isCoupleOwner(resource.data.coupleId) &&
-                      isCoupleOwner(request.resource.data.coupleId) &&
-                      resource.data.coupleId == request.resource.data.coupleId;
-      allow delete: if isAuthenticated() && isCoupleOwner(resource.data.coupleId);
-    }
-
-    // Quick picks collection (read-only for users)
-    match /quickPicks/{pickId} {
-      allow read: if isAuthenticated();
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

@@ -377,4 +377,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     flex: 1,
   },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#6B7280',
+  },
 });

@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Erica's Marshmallows",
-    "slug": "ericas-marshmallows",
+    "slug": "ericas-marshallows",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -14,7 +14,8 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ericasmarshmallows.app"
+      "bundleIdentifier": "com.ericasmarshmallows.app",
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "adaptiveIcon": {
@@ -32,7 +33,7 @@
       [
         "@react-native-google-signin/google-signin",
         {
-          "iosUrlScheme": "com.googleusercontent.apps.YOUR_IOS_CLIENT_ID"
+          "iosUrlScheme": "com.googleusercontent.apps.989971240553-cq96qevhrq1a0ksa43nu0jdihmalq2f1"
         }
       ]
     ]

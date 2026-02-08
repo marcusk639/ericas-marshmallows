@@ -12,6 +12,7 @@
     "install:all": "npm install",
     "clean": "rm -rf node_modules mobile/node_modules functions/node_modules shared/node_modules",
     "build:functions": "cd functions && npm run build",
+    "deploy:functions": "npm run build:functions && npm run deploy",
     "build:shared": "cd shared && npm run build"
   },
   "engines": {

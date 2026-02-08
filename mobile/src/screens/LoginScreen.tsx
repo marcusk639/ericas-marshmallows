@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,8 +7,8 @@ import {
   ActivityIndicator,
   Alert,
   SafeAreaView,
-} from 'react-native';
-import { signInWithGoogle } from '../services/auth';
+} from "react-native";
+import { signInWithGoogle } from "../services/auth";
 
 export const LoginScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -20,9 +20,9 @@ export const LoginScreen: React.FC = () => {
       // Navigation to main app will be handled by auth state change in App.tsx
     } catch (error: any) {
       Alert.alert(
-        'Sign In Failed',
-        error.message || 'An unexpected error occurred. Please try again.',
-        [{ text: 'OK' }]
+        "Sign In Failed",
+        error.message || "An unexpected error occurred. Please try again.",
+        [{ text: "OK" }],
       );
     } finally {
       setLoading(false);
@@ -37,14 +37,17 @@ export const LoginScreen: React.FC = () => {
           <Text style={styles.emoji}>🍭</Text>
           <Text style={styles.title}>Erica's Marshmallows</Text>
           <Text style={styles.subtitle}>
-            Sweet moments between{'\n'}Marcus & Erica
+            Sweet moments between{"\n"}Marcus & Erica
           </Text>
         </View>
 
         {/* Sign In Button */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
-            style={[styles.signInButton, loading && styles.signInButtonDisabled]}
+            style={[
+              styles.signInButton,
+              loading && styles.signInButtonDisabled,
+            ]}
             onPress={handleGoogleSignIn}
             disabled={loading}
             activeOpacity={0.8}
@@ -60,7 +63,7 @@ export const LoginScreen: React.FC = () => {
           </TouchableOpacity>
 
           <Text style={styles.disclaimer}>
-            This app is exclusively for Marcus and Erica.{'\n'}
+            This app is exclusively for Marcus and Erica.{"\n"}
             Please sign in with your authorized account.
           </Text>
         </View>
@@ -68,7 +71,7 @@ export const LoginScreen: React.FC = () => {
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            Share sweet moments, daily check-ins,{'\n'}
+            Share sweet moments, daily check-ins,{"\n"}
             and cherished memories together
           </Text>
         </View>
@@ -80,16 +83,16 @@ export const LoginScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF5F7', // Light pink background
+    backgroundColor: "#FFF5F7", // Light pink background
   },
   content: {
     flex: 1,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
     paddingHorizontal: 24,
     paddingVertical: 48,
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 60,
   },
   emoji: {
@@ -98,31 +101,31 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#D946A6', // Pink color
+    fontWeight: "bold",
+    color: "#D946A6", // Pink color
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   subtitle: {
     fontSize: 18,
-    color: '#64748B', // Slate gray
-    textAlign: 'center',
+    color: "#64748B", // Slate gray
+    textAlign: "center",
     lineHeight: 26,
   },
   buttonContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     gap: 16,
   },
   signInButton: {
-    backgroundColor: '#D946A6', // Pink color
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#D946A6", // Pink color
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 12,
-    width: '100%',
-    shadowColor: '#D946A6',
+    width: "100%",
+    shadowColor: "#D946A6",
     shadowOffset: {
       width: 0,
       height: 4,
@@ -136,30 +139,30 @@ const styles = StyleSheet.create({
   },
   googleIcon: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
     marginRight: 12,
   },
   signInButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   disclaimer: {
     fontSize: 14,
-    color: '#64748B',
-    textAlign: 'center',
+    color: "#64748B",
+    textAlign: "center",
     lineHeight: 20,
     marginTop: 8,
   },
   footer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 20,
   },
   footerText: {
     fontSize: 14,
-    color: '#94A3B8', // Light slate gray
-    textAlign: 'center',
+    color: "#94A3B8", // Light slate gray
+    textAlign: "center",
     lineHeight: 20,
   },
 });

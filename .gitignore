@@ -27,3 +27,6 @@ functions/lib/
 # Logs
 *.log
 npm-debug.log*
+
+# Firebase
+shared/firebase-private-key.json
