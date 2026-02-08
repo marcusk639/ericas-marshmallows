@@ -1,15 +1,30 @@
 rules_version = '2';
-
 service firebase.storage {
   match /b/{bucket}/o {
-    // Secure defaults - deny all access by default
-    // These rules will be updated as the application is developed
-    match /{allPaths=**} {
-      allow read, write: if false;
+    function isAuthenticated() {
+      return request.auth != null;
     }
 
-    // Future rules will be added here for:
-    // - User profile images
-    // - Marshmallow attachments
+    function getUserCoupleId() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.coupleId;
+    }
+
+    // Marshmallow photos: couples/{coupleId}/marshmallows/{filename}
+    match /couples/{coupleId}/marshmallows/{filename} {
+      allow read: if isAuthenticated() && getUserCoupleId() == coupleId;
+      allow write: if isAuthenticated() &&
+                     getUserCoupleId() == coupleId &&
+                     request.resource.size < 10 * 1024 * 1024 && // 10MB max
+                     request.resource.contentType.matches('image/.*');
+    }
+
+    // Memory photos: couples/{coupleId}/memories/{filename}
+    match /couples/{coupleId}/memories/{filename} {
+      allow read: if isAuthenticated() && getUserCoupleId() == coupleId;
+      allow write: if isAuthenticated() &&
+                     getUserCoupleId() == coupleId &&
+                     request.resource.size < 10 * 1024 * 1024 && // 10MB max
+                     request.resource.contentType.matches('image/.*');
+    }
   }
 }

@@ -1,16 +1,62 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Secure defaults - deny all access by default
-    // These rules will be updated as the application is developed
-    match /{document=**} {
-      allow read, write: if false;
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
     }
 
-    // Future rules will be added here for:
-    // - User profiles
-    // - Marshmallow messages
-    // - Friend relationships
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function getUserCoupleId() {
+      return getUserData().coupleId;
+    }
+
+    function isCoupleOwner(coupleId) {
+      return isAuthenticated() && getUserCoupleId() == coupleId;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Couples collection
+    match /couples/{coupleId} {
+      allow read: if isAuthenticated() && isCoupleOwner(coupleId);
+      allow write: if isAuthenticated() && isCoupleOwner(coupleId);
+    }
+
+    // Marshmallows collection
+    match /marshmallows/{marshmallowId} {
+      allow read: if isAuthenticated() && isCoupleOwner(resource.data.coupleId);
+      allow create: if isAuthenticated() &&
+                      isCoupleOwner(request.resource.data.coupleId) &&
+                      request.resource.data.senderId == request.auth.uid;
+      allow update: if isAuthenticated() && isCoupleOwner(resource.data.coupleId);
+    }
+
+    // Daily check-ins collection
+    match /dailyCheckins/{checkinId} {
+      allow read: if isAuthenticated() && isCoupleOwner(resource.data.coupleId);
+      allow create: if isAuthenticated() &&
+                      isCoupleOwner(request.resource.data.coupleId) &&
+                      request.resource.data.userId == request.auth.uid;
+    }
+
+    // Memories collection
+    match /memories/{memoryId} {
+      allow read: if isAuthenticated() && isCoupleOwner(resource.data.coupleId);
+      allow write: if isAuthenticated() && isCoupleOwner(request.resource.data.coupleId);
+    }
+
+    // Quick picks collection (read-only for users)
+    match /quickPicks/{pickId} {
+      allow read: if isAuthenticated();
+    }
   }
 }
