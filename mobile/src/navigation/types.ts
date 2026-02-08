@@ -5,6 +5,7 @@ import type { CompositeScreenProps, NavigatorScreenParams } from '@react-navigat
  * Root navigation parameter list
  */
 export type RootTabParamList = {
+  Home: undefined;
   Marshmallows: undefined;
   CheckIn: undefined;
   Memories: undefined;

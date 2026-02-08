@@ -25,6 +25,15 @@ export default function RootNavigator() {
       }}
     >
       <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          title: 'Home',
+          tabBarLabel: 'Home',
+        }}
+      />
+
+      <Tab.Screen
         name="Marshmallows"
         component={MarshmallowsScreen}
         options={{
