@@ -14,6 +14,7 @@ import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'fireb
 import { getCurrentUser, getUserProfile, signOut } from '../services/auth';
 import { getCheckinStreak } from '../services/dailyCheckins';
 import { db } from '../config/firebase';
+import { TimePickerModal } from '../components/TimePickerModal';
 import type { User, Couple, Marshmallow, Memory, WithId } from '../../../shared/types';
 
 export default function ProfileScreen() {
@@ -32,6 +33,10 @@ export default function ProfileScreen() {
   const [morningTime, setMorningTime] = useState('09:00');
   const [eveningTime, setEveningTime] = useState('20:00');
   const [wifiOnly, setWifiOnly] = useState(false);
+
+  // Time picker modal state
+  const [showMorningPicker, setShowMorningPicker] = useState(false);
+  const [showEveningPicker, setShowEveningPicker] = useState(false);
 
   useEffect(() => {
     loadProfileData();
@@ -141,6 +146,40 @@ export default function ProfileScreen() {
     } catch (error) {
       console.error('Error saving settings:', error);
       Alert.alert('Error', 'Failed to save settings. Please try again.');
+    }
+  };
+
+  const handleMorningTimeConfirm = async (time: string) => {
+    setMorningTime(time);
+    setShowMorningPicker(false);
+
+    if (!currentUser) return;
+
+    try {
+      const userRef = doc(db, 'users', currentUser.id);
+      await updateDoc(userRef, {
+        'settings.morningCheckInTime': time,
+      });
+    } catch (error) {
+      console.error('Error saving morning time:', error);
+      Alert.alert('Error', 'Failed to save morning check-in time. Please try again.');
+    }
+  };
+
+  const handleEveningTimeConfirm = async (time: string) => {
+    setEveningTime(time);
+    setShowEveningPicker(false);
+
+    if (!currentUser) return;
+
+    try {
+      const userRef = doc(db, 'users', currentUser.id);
+      await updateDoc(userRef, {
+        'settings.eveningReminderTime': time,
+      });
+    } catch (error) {
+      console.error('Error saving evening time:', error);
+      Alert.alert('Error', 'Failed to save evening reminder time. Please try again.');
     }
   };
 
@@ -258,21 +297,29 @@ export default function ProfileScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Settings</Text>
 
-        <View style={styles.settingRow}>
+        <TouchableOpacity
+          style={styles.settingRow}
+          onPress={() => setShowMorningPicker(true)}
+          activeOpacity={0.7}
+        >
           <View style={styles.settingInfo}>
             <Text style={styles.settingLabel}>Morning Check-In Time</Text>
             <Text style={styles.settingDescription}>When to send morning reminder</Text>
           </View>
           <Text style={styles.timeValue}>{morningTime}</Text>
-        </View>
+        </TouchableOpacity>
 
-        <View style={styles.settingRow}>
+        <TouchableOpacity
+          style={styles.settingRow}
+          onPress={() => setShowEveningPicker(true)}
+          activeOpacity={0.7}
+        >
           <View style={styles.settingInfo}>
             <Text style={styles.settingLabel}>Evening Reminder Time</Text>
             <Text style={styles.settingDescription}>When to send evening reminder</Text>
           </View>
           <Text style={styles.timeValue}>{eveningTime}</Text>
-        </View>
+        </TouchableOpacity>
 
         <View style={styles.settingRow}>
           <View style={styles.settingInfo}>
@@ -309,6 +356,23 @@ export default function ProfileScreen() {
 
       {/* Footer */}
       <Text style={styles.footer}>Erica's Marshmallows v1.0</Text>
+
+      {/* Time Picker Modals */}
+      <TimePickerModal
+        visible={showMorningPicker}
+        title="Morning Check-In Time"
+        initialTime={morningTime}
+        onConfirm={handleMorningTimeConfirm}
+        onCancel={() => setShowMorningPicker(false)}
+      />
+
+      <TimePickerModal
+        visible={showEveningPicker}
+        title="Evening Reminder Time"
+        initialTime={eveningTime}
+        onConfirm={handleEveningTimeConfirm}
+        onCancel={() => setShowEveningPicker(false)}
+      />
     </ScrollView>
   );
 }
