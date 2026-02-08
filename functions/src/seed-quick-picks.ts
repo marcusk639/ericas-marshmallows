@@ -7,7 +7,11 @@ import * as admin from "firebase-admin";
 
 // Initialize Firebase Admin
 if (!admin.apps.length) {
-  admin.initializeApp();
+  admin.initializeApp({
+    credential: admin.credential.cert(
+      require("../../shared/firebase-private-key.json"),
+    ),
+  });
 }
 
 const db = admin.firestore();
