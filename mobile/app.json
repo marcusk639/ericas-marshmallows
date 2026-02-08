@@ -2,6 +2,7 @@
   "expo": {
     "name": "Erica's Marshmallows",
     "slug": "ericas-marshallows",
+    "owner": "marcusk639",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -28,6 +29,7 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "scheme": "ericasmarshmallows"
   }
 }
