@@ -1,6 +1,12 @@
+// Firestore Timestamp type for documents
+export type FirestoreTimestamp = {
+  seconds: number;
+  nanoseconds: number;
+};
+
 export interface Couple {
-  createdAt: Date;
-  memberIds: string[];
+  createdAt: FirestoreTimestamp;
+  memberIds: [string, string]; // Tuple for exactly two members
   memberNames: Record<string, string>;
 }
 
@@ -10,7 +16,7 @@ export interface User {
   coupleId: string;
   fcmToken?: string;
   photoUrl?: string;
-  createdAt: Date;
+  createdAt: FirestoreTimestamp;
   settings: UserSettings;
 }
 
@@ -30,7 +36,7 @@ export interface Marshmallow {
   type: MarshmallowType;
   photoUrl?: string;
   quickPickId?: string;
-  createdAt: Date;
+  createdAt: FirestoreTimestamp;
   read: boolean;
 }
 
@@ -43,7 +49,7 @@ export interface DailyCheckin {
   mood: MoodType;
   moodNote?: string;
   gratitude: string;
-  createdAt: Date;
+  createdAt: FirestoreTimestamp;
 }
 
 export type MemorySource = 'manual' | 'suggested' | 'device';
@@ -56,15 +62,12 @@ export interface Memory {
   photoUrls: string[];
   devicePhotoUris: string[];
   tags: string[];
-  date: Date;
+  date: FirestoreTimestamp;
   source: MemorySource;
-  createdAt: Date;
+  createdAt: FirestoreTimestamp;
 }
+
+// Utility type to add Firestore document ID to a type
+export type WithId<T> = T & { id: string };
 
 export type QuickPickCategory = 'sweet' | 'playful' | 'loving';
-
-export interface QuickPick {
-  message: string;
-  emoji: string;
-  category: QuickPickCategory;
-}

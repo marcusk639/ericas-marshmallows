@@ -6,6 +6,9 @@ mobile/.expo/
 mobile/dist/
 mobile/web-build/
 
+# Shared package
+shared/dist/
+
 # Firebase
 functions/lib/
 .firebase/

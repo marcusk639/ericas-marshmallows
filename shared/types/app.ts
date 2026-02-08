@@ -1,18 +1,15 @@
-import { MoodType } from './firestore';
+import { MoodType, QuickPickCategory } from './firestore';
 
-export const COUPLE_CONFIG = {
-  coupleId: 'marcus-erica',
+// Type definition for couple configuration (to be populated by environment config)
+export type CoupleConfig = {
+  coupleId: string;
   members: {
-    'marcusk639@gmail.com': {
-      name: 'Marcus',
-      role: 'partner1' as const,
-    },
-    'ericajure@gmail.com': {
-      name: 'Erica',
-      role: 'partner2' as const,
-    },
-  },
-} as const;
+    [email: string]: {
+      name: string;
+      role: 'partner1' | 'partner2';
+    };
+  };
+};
 
 export interface MoodOption {
   type: MoodType;
@@ -29,7 +26,13 @@ export const MOOD_OPTIONS: MoodOption[] = [
   { type: 'down', emoji: '😔', label: 'Down' },
 ];
 
-export const DEFAULT_QUICK_PICKS = [
+export interface QuickPick {
+  message: string;
+  emoji: string;
+  category: QuickPickCategory;
+}
+
+export const DEFAULT_QUICK_PICKS: QuickPick[] = [
   { message: 'Thinking of you', emoji: '💭', category: 'sweet' as const },
   { message: 'I love you', emoji: '❤️', category: 'loving' as const },
   { message: 'Miss you', emoji: '🥺', category: 'sweet' as const },
