@@ -7,15 +7,21 @@ service cloud.firestore {
     }
 
     function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return userData.data != null ? userData.data : null;
+    }
+
+    function userExists() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid));
     }
 
     function getUserCoupleId() {
-      return getUserData().coupleId;
+      let userData = getUserData();
+      return userData != null ? userData.coupleId : null;
     }
 
     function isCoupleOwner(coupleId) {
-      return isAuthenticated() && getUserCoupleId() == coupleId;
+      return isAuthenticated() && userExists() && getUserCoupleId() == coupleId;
     }
 
     // Users collection
@@ -28,7 +34,9 @@ service cloud.firestore {
     // Couples collection
     match /couples/{coupleId} {
       allow read: if isAuthenticated() && isCoupleOwner(coupleId);
-      allow write: if isAuthenticated() && isCoupleOwner(coupleId);
+      allow create: if isAuthenticated() && isCoupleOwner(coupleId);
+      allow update: if isAuthenticated() && isCoupleOwner(coupleId);
+      // Prevent accidental couple deletion - must be done via admin SDK
     }
 
     // Marshmallows collection
@@ -51,7 +59,12 @@ service cloud.firestore {
     // Memories collection
     match /memories/{memoryId} {
       allow read: if isAuthenticated() && isCoupleOwner(resource.data.coupleId);
-      allow write: if isAuthenticated() && isCoupleOwner(request.resource.data.coupleId);
+      allow create: if isAuthenticated() && isCoupleOwner(request.resource.data.coupleId);
+      allow update: if isAuthenticated() &&
+                      isCoupleOwner(resource.data.coupleId) &&
+                      isCoupleOwner(request.resource.data.coupleId) &&
+                      resource.data.coupleId == request.resource.data.coupleId;
+      allow delete: if isAuthenticated() && isCoupleOwner(resource.data.coupleId);
     }
 
     // Quick picks collection (read-only for users)
