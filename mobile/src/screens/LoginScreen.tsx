@@ -6,12 +6,12 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  SafeAreaView,
   TextInput,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { signInWithGoogle, useGoogleAuth, signInWithEmail, signUpWithEmail } from "../services/auth";
 
 type AuthMode = 'signin' | 'signup';
@@ -21,7 +21,6 @@ export const LoginScreen: React.FC = () => {
   const [authMode, setAuthMode] = useState<AuthMode>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
   const { request, response, promptAsync } = useGoogleAuth();
 
   // Handle Google auth response
@@ -78,15 +77,10 @@ export const LoginScreen: React.FC = () => {
       return;
     }
 
-    if (authMode === 'signup' && !name) {
-      Alert.alert("Error", "Please enter your name.");
-      return;
-    }
-
     try {
       setLoading(true);
       if (authMode === 'signup') {
-        await signUpWithEmail(email, password, name);
+        await signUpWithEmail(email, password);
       } else {
         await signInWithEmail(email, password);
       }
@@ -161,16 +155,6 @@ export const LoginScreen: React.FC = () => {
               secureTextEntry
               editable={!loading}
             />
-
-            {authMode === 'signup' && (
-              <TextInput
-                style={styles.input}
-                placeholder="Display Name"
-                value={name}
-                onChangeText={setName}
-                editable={!loading}
-              />
-            )}
 
             <TouchableOpacity
               style={[styles.authButton, loading && styles.authButtonDisabled]}

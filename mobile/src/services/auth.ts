@@ -138,18 +138,24 @@ const createOrUpdateUserProfile = async (
         throw new Error('User email is required but not available');
       }
 
-      await setDoc(userRef, {
+      const userData: any = {
         email: firebaseUser.email,
         name: displayName,
         coupleId: COUPLE_CONFIG.coupleId,
-        photoUrl: firebaseUser.photoURL || undefined,
         createdAt: serverTimestamp(),
         settings: {
           morningCheckInTime: '09:00',
           eveningReminderTime: '20:00',
           wifiOnlySync: false,
         },
-      });
+      };
+
+      // Only include photoUrl if it exists (Google OAuth has photo, email/password doesn't)
+      if (firebaseUser.photoURL) {
+        userData.photoUrl = firebaseUser.photoURL;
+      }
+
+      await setDoc(userRef, userData);
       console.log('Created new user profile');
     }
 
@@ -311,11 +317,11 @@ export const isAccountSetup = async (): Promise<boolean> => {
 /**
  * Sign up with email and password
  * Creates a new user account and profile in Firestore
+ * Note: Display name is automatically set based on authorized email (Marcus or Erica)
  */
 export const signUpWithEmail = async (
   email: string,
-  password: string,
-  displayName: string
+  password: string
 ): Promise<FirebaseUser> => {
   try {
     // Validate email is authorized (Marcus or Erica)
