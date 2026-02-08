@@ -11,8 +11,8 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { DEFAULT_QUICK_PICKS } from '../../../shared/types';
 import { useSendMarshmallow } from '../hooks/useMarshmallows';
+import { useQuickPicks } from '../hooks/useQuickPicks';
 
 type ModalMode = 'choose' | 'custom' | 'quick-pick';
 
@@ -34,6 +34,7 @@ export const SendMarshmallowModal: React.FC<SendMarshmallowModalProps> = ({
   const [mode, setMode] = useState<ModalMode>('choose');
   const [customMessage, setCustomMessage] = useState('');
   const { sendMarshmallow, sending } = useSendMarshmallow(coupleId, senderId);
+  const { quickPicks, loading: loadingQuickPicks } = useQuickPicks();
 
   const handleClose = () => {
     // Reset state when closing
@@ -172,22 +173,29 @@ export const SendMarshmallowModal: React.FC<SendMarshmallowModalProps> = ({
       <Text style={styles.title}>Quick Pick</Text>
       <Text style={styles.subtitle}>Choose a preset message</Text>
 
-      <ScrollView
-        style={styles.quickPickScrollView}
-        showsVerticalScrollIndicator={false}
-      >
-        {DEFAULT_QUICK_PICKS.map((quickPick, index) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.quickPickButton}
-            onPress={() => handleSendQuickPick(quickPick.message)}
-            disabled={sending}
-          >
-            <Text style={styles.quickPickEmoji}>{quickPick.emoji}</Text>
-            <Text style={styles.quickPickText}>{quickPick.message}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      {loadingQuickPicks ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#D946A6" />
+          <Text style={styles.loadingText}>Loading quick picks...</Text>
+        </View>
+      ) : (
+        <ScrollView
+          style={styles.quickPickScrollView}
+          showsVerticalScrollIndicator={false}
+        >
+          {quickPicks.map((quickPick) => (
+            <TouchableOpacity
+              key={quickPick.id}
+              style={styles.quickPickButton}
+              onPress={() => handleSendQuickPick(quickPick.message)}
+              disabled={sending}
+            >
+              <Text style={styles.quickPickEmoji}>{quickPick.emoji}</Text>
+              <Text style={styles.quickPickText}>{quickPick.message}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      )}
 
       <TouchableOpacity
         style={styles.cancelButton}
