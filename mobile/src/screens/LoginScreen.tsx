@@ -7,11 +7,21 @@ import {
   ActivityIndicator,
   Alert,
   SafeAreaView,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from "react-native";
-import { signInWithGoogle, useGoogleAuth } from "../services/auth";
+import { signInWithGoogle, useGoogleAuth, signInWithEmail, signUpWithEmail } from "../services/auth";
+
+type AuthMode = 'signin' | 'signup';
 
 export const LoginScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
+  const [authMode, setAuthMode] = useState<AuthMode>('signin');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const { request, response, promptAsync } = useGoogleAuth();
 
   // Handle Google auth response
@@ -62,53 +72,164 @@ export const LoginScreen: React.FC = () => {
     }
   };
 
+  const handleEmailAuth = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please enter your email and password.");
+      return;
+    }
+
+    if (authMode === 'signup' && !name) {
+      Alert.alert("Error", "Please enter your name.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      if (authMode === 'signup') {
+        await signUpWithEmail(email, password, name);
+      } else {
+        await signInWithEmail(email, password);
+      }
+      // Navigation to main app will be handled by auth state change in App.tsx
+    } catch (error: any) {
+      Alert.alert(
+        authMode === 'signup' ? "Sign Up Failed" : "Sign In Failed",
+        error.message || "An unexpected error occurred. Please try again.",
+        [{ text: "OK" }]
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        {/* Logo/Header Section */}
-        <View style={styles.header}>
-          <Text style={styles.emoji}>🍭</Text>
-          <Text style={styles.title}>Erica's Marshmallows</Text>
-          <Text style={styles.subtitle}>
-            Sweet moments between{"\n"}Marcus & Erica
-          </Text>
-        </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardView}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Logo/Header Section */}
+          <View style={styles.header}>
+            <Text style={styles.emoji}>🍭</Text>
+            <Text style={styles.title}>Erica's Marshmallows</Text>
+            <Text style={styles.subtitle}>
+              Sweet moments between{"\n"}Marcus & Erica
+            </Text>
+          </View>
 
-        {/* Sign In Button */}
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={[
-              styles.signInButton,
-              (loading || !request) && styles.signInButtonDisabled,
-            ]}
-            onPress={handleGoogleSignIn}
-            disabled={loading || !request}
-            activeOpacity={0.8}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <>
-                <Text style={styles.googleIcon}>G</Text>
-                <Text style={styles.signInButtonText}>Sign in with Google</Text>
-              </>
+          {/* Auth Mode Toggle */}
+          <View style={styles.toggleContainer}>
+            <TouchableOpacity
+              style={[styles.toggleButton, authMode === 'signin' && styles.toggleButtonActive]}
+              onPress={() => setAuthMode('signin')}
+            >
+              <Text style={[styles.toggleText, authMode === 'signin' && styles.toggleTextActive]}>
+                Sign In
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.toggleButton, authMode === 'signup' && styles.toggleButtonActive]}
+              onPress={() => setAuthMode('signup')}
+            >
+              <Text style={[styles.toggleText, authMode === 'signup' && styles.toggleTextActive]}>
+                Sign Up
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Email/Password Form */}
+          <View style={styles.formContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              editable={!loading}
+            />
+
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              editable={!loading}
+            />
+
+            {authMode === 'signup' && (
+              <TextInput
+                style={styles.input}
+                placeholder="Display Name"
+                value={name}
+                onChangeText={setName}
+                editable={!loading}
+              />
             )}
-          </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.authButton, loading && styles.authButtonDisabled]}
+              onPress={handleEmailAuth}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.authButtonText}>
+                  {authMode === 'signup' ? 'Create Account' : 'Sign In'}
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {/* Divider */}
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>OR</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          {/* Google Sign In Button */}
+          <View style={styles.googleContainer}>
+            <TouchableOpacity
+              style={[
+                styles.googleButton,
+                (loading || !request) && styles.googleButtonDisabled,
+              ]}
+              onPress={handleGoogleSignIn}
+              disabled={loading || !request}
+              activeOpacity={0.8}
+            >
+              {loading ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <>
+                  <Text style={styles.googleIcon}>G</Text>
+                  <Text style={styles.googleButtonText}>Sign in with Google</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
 
           <Text style={styles.disclaimer}>
             This app is exclusively for Marcus and Erica.{"\n"}
-            Please sign in with your authorized account.
+            Please use your authorized account.
           </Text>
-        </View>
 
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            Share sweet moments, daily check-ins,{"\n"}
-            and cherished memories together
-          </Text>
-        </View>
-      </View>
+          {/* Footer */}
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>
+              Share sweet moments, daily check-ins,{"\n"}
+              and cherished memories together
+            </Text>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -116,48 +237,82 @@ export const LoginScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFF5F7", // Light pink background
+    backgroundColor: "#FFF5F7",
   },
-  content: {
+  keyboardView: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: "space-between",
     paddingHorizontal: 24,
     paddingVertical: 48,
   },
   header: {
     alignItems: "center",
-    marginTop: 60,
+    marginTop: 20,
+    marginBottom: 24,
   },
   emoji: {
-    fontSize: 80,
-    marginBottom: 16,
+    fontSize: 60,
+    marginBottom: 12,
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: "bold",
-    color: "#D946A6", // Pink color
+    color: "#D946A6",
     marginBottom: 8,
     textAlign: "center",
   },
   subtitle: {
-    fontSize: 18,
-    color: "#64748B", // Slate gray
+    fontSize: 16,
+    color: "#64748B",
     textAlign: "center",
-    lineHeight: 26,
+    lineHeight: 24,
   },
-  buttonContainer: {
-    alignItems: "center",
-    gap: 16,
-  },
-  signInButton: {
-    backgroundColor: "#D946A6", // Pink color
+  toggleContainer: {
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 32,
+    backgroundColor: "#FFFFFF",
     borderRadius: 12,
-    width: "100%",
+    padding: 4,
+    marginBottom: 24,
+  },
+  toggleButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: "center",
+    borderRadius: 8,
+  },
+  toggleButtonActive: {
+    backgroundColor: "#D946A6",
+  },
+  toggleText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#64748B",
+  },
+  toggleTextActive: {
+    color: "#FFFFFF",
+  },
+  formContainer: {
+    gap: 12,
+  },
+  input: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: "#1F2937",
+    borderWidth: 2,
+    borderColor: "#FED7E2",
+  },
+  authButton: {
+    backgroundColor: "#D946A6",
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    marginTop: 8,
     shadowColor: "#D946A6",
     shadowOffset: {
       width: 0,
@@ -167,7 +322,51 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 6,
   },
-  signInButtonDisabled: {
+  authButtonDisabled: {
+    opacity: 0.7,
+  },
+  authButtonText: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  divider: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 24,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#E5E7EB",
+  },
+  dividerText: {
+    marginHorizontal: 16,
+    fontSize: 14,
+    color: "#9CA3AF",
+    fontWeight: "600",
+  },
+  googleContainer: {
+    marginBottom: 16,
+  },
+  googleButton: {
+    backgroundColor: "#4285F4",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    shadowColor: "#4285F4",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  googleButtonDisabled: {
     opacity: 0.7,
   },
   googleIcon: {
@@ -176,26 +375,25 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     marginRight: 12,
   },
-  signInButtonText: {
+  googleButtonText: {
     color: "#FFFFFF",
     fontSize: 18,
     fontWeight: "600",
   },
   disclaimer: {
-    fontSize: 14,
+    fontSize: 12,
     color: "#64748B",
     textAlign: "center",
-    lineHeight: 20,
-    marginTop: 8,
+    lineHeight: 18,
   },
   footer: {
     alignItems: "center",
-    marginBottom: 20,
+    marginTop: 16,
   },
   footerText: {
-    fontSize: 14,
-    color: "#94A3B8", // Light slate gray
+    fontSize: 12,
+    color: "#94A3B8",
     textAlign: "center",
-    lineHeight: 20,
+    lineHeight: 18,
   },
 });

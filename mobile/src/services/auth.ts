@@ -4,6 +4,9 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged,
   User as FirebaseUser,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
 } from 'firebase/auth';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
@@ -303,4 +306,103 @@ export const isAccountSetup = async (): Promise<boolean> => {
 
   const profile = await getUserProfile(user.uid);
   return profile !== null;
+};
+
+/**
+ * Sign up with email and password
+ * Creates a new user account and profile in Firestore
+ */
+export const signUpWithEmail = async (
+  email: string,
+  password: string,
+  displayName: string
+): Promise<FirebaseUser> => {
+  try {
+    // Validate email is authorized (Marcus or Erica)
+    const memberConfig = getMemberConfig(email);
+
+    if (!memberConfig) {
+      throw new Error(
+        'This app is only available to Marcus and Erica. ' +
+        'Please use an authorized email address.'
+      );
+    }
+
+    // Create user account
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const firebaseUser = userCredential.user;
+
+    // Update display name
+    await updateProfile(firebaseUser, {
+      displayName: memberConfig.name,
+    });
+
+    // Create user profile in Firestore
+    await createOrUpdateUserProfile(firebaseUser, memberConfig.name);
+
+    console.log(`Successfully created account for ${memberConfig.name}`);
+    return firebaseUser;
+  } catch (error: any) {
+    console.error('Error signing up with email:', error);
+
+    // Handle specific Firebase errors
+    if (error.code === 'auth/email-already-in-use') {
+      throw new Error('This email is already registered. Please sign in instead.');
+    } else if (error.code === 'auth/weak-password') {
+      throw new Error('Password is too weak. Please use at least 6 characters.');
+    } else if (error.code === 'auth/invalid-email') {
+      throw new Error('Invalid email address.');
+    }
+
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Failed to create account. Please try again.');
+  }
+};
+
+/**
+ * Sign in with email and password
+ */
+export const signInWithEmail = async (
+  email: string,
+  password: string
+): Promise<FirebaseUser> => {
+  try {
+    // Validate email is authorized (Marcus or Erica)
+    const memberConfig = getMemberConfig(email);
+
+    if (!memberConfig) {
+      throw new Error(
+        'This app is only available to Marcus and Erica. ' +
+        'Please use an authorized email address.'
+      );
+    }
+
+    // Sign in with email and password
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const firebaseUser = userCredential.user;
+
+    // Ensure profile exists in Firestore
+    await createOrUpdateUserProfile(firebaseUser, memberConfig.name);
+
+    console.log(`Successfully signed in as ${memberConfig.name}`);
+    return firebaseUser;
+  } catch (error: any) {
+    console.error('Error signing in with email:', error);
+
+    // Handle specific Firebase errors
+    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+      throw new Error('Invalid email or password.');
+    } else if (error.code === 'auth/invalid-email') {
+      throw new Error('Invalid email address.');
+    } else if (error.code === 'auth/too-many-requests') {
+      throw new Error('Too many failed attempts. Please try again later.');
+    }
+
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Failed to sign in. Please try again.');
+  }
 };
