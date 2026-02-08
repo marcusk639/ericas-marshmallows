@@ -6,19 +6,20 @@ import {
   User as FirebaseUser,
 } from 'firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp, runTransaction } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
 import type { User, Couple, CoupleConfig } from '../../../shared/types';
 
 // Couple configuration - Marcus and Erica
+// Email addresses are loaded from environment variables for security
 const COUPLE_CONFIG: CoupleConfig = {
   coupleId: 'marcus-erica',
   members: {
-    'marcus@example.com': {
+    [process.env.EXPO_PUBLIC_PARTNER1_EMAIL || '']: {
       name: 'Marcus',
       role: 'partner1',
     },
-    'erica@example.com': {
+    [process.env.EXPO_PUBLIC_PARTNER2_EMAIL || '']: {
       name: 'Erica',
       role: 'partner2',
     },
@@ -78,42 +79,42 @@ const getPartnerId = async (userId: string): Promise<string | null> => {
 /**
  * Create or update couple document in Firestore
  * Only creates if both Marcus and Erica have signed in
+ * Uses transaction to prevent race conditions during simultaneous sign-ins
  */
 const createCoupleIfNeeded = async (userId: string, userName: string): Promise<void> => {
   try {
     const coupleRef = doc(db, 'couples', COUPLE_CONFIG.coupleId);
-    const coupleDoc = await getDoc(coupleRef);
 
-    if (coupleDoc.exists()) {
-      // Couple already exists, check if we need to add this user
-      const coupleData = coupleDoc.data() as Couple;
+    await runTransaction(db, async (transaction) => {
+      const coupleDoc = await transaction.get(coupleRef);
 
-      if (!coupleData.memberIds.includes(userId)) {
-        // Partner is joining - update the couple document
-        await setDoc(
-          coupleRef,
-          {
+      if (coupleDoc.exists()) {
+        // Couple already exists, check if we need to add this user
+        const coupleData = coupleDoc.data() as Couple;
+
+        if (!coupleData.memberIds.includes(userId)) {
+          // Partner is joining - update the couple document atomically
+          transaction.update(coupleRef, {
             memberIds: [coupleData.memberIds[0], userId] as [string, string],
             memberNames: {
               ...coupleData.memberNames,
               [userId]: userName,
             },
+          });
+          console.log('Updated couple document with second partner');
+        }
+      } else {
+        // First person to sign in - create couple document with placeholder
+        transaction.set(coupleRef, {
+          createdAt: serverTimestamp(),
+          memberIds: [userId, ''] as [string, string], // Placeholder for second member
+          memberNames: {
+            [userId]: userName,
           },
-          { merge: true }
-        );
-        console.log('Updated couple document with second partner');
+        });
+        console.log('Created couple document with first partner');
       }
-    } else {
-      // First person to sign in - create couple document with placeholder
-      await setDoc(coupleRef, {
-        createdAt: serverTimestamp(),
-        memberIds: [userId, ''] as [string, string], // Placeholder for second member
-        memberNames: {
-          [userId]: userName,
-        },
-      });
-      console.log('Created couple document with first partner');
-    }
+    });
   } catch (error) {
     console.error('Error creating/updating couple:', error);
     throw new Error('Failed to initialize couple. Please try again.');
@@ -143,20 +144,22 @@ const createOrUpdateUserProfile = async (
       console.log('Updated existing user profile');
     } else {
       // Create new user profile
-      const userData: User = {
-        email: firebaseUser.email!,
+      if (!firebaseUser.email) {
+        throw new Error('User email is required but not available');
+      }
+
+      await setDoc(userRef, {
+        email: firebaseUser.email,
         name: displayName,
         coupleId: COUPLE_CONFIG.coupleId,
         photoUrl: firebaseUser.photoURL || undefined,
-        createdAt: serverTimestamp() as any,
+        createdAt: serverTimestamp(),
         settings: {
           morningCheckInTime: '09:00',
           eveningReminderTime: '20:00',
           wifiOnlySync: false,
         },
-      };
-
-      await setDoc(userRef, userData);
+      });
       console.log('Created new user profile');
     }
 

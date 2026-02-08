@@ -19,12 +19,13 @@ export const LoginScreen: React.FC = () => {
       await signInWithGoogle();
       // Navigation to main app will be handled by auth state change in App.tsx
     } catch (error: any) {
-      setLoading(false);
       Alert.alert(
         'Sign In Failed',
         error.message || 'An unexpected error occurred. Please try again.',
         [{ text: 'OK' }]
       );
+    } finally {
+      setLoading(false);
     }
   };
 
