@@ -335,7 +335,10 @@ export const signUpWithEmail = async (
     }
 
     // Create user account
+    console.log('Attempting to create user with email:', email);
+    console.log('Auth instance exists:', !!auth);
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    console.log('User created successfully:', userCredential.user.uid);
     const firebaseUser = userCredential.user;
 
     // Update display name
@@ -350,6 +353,9 @@ export const signUpWithEmail = async (
     return firebaseUser;
   } catch (error: any) {
     console.error('Error signing up with email:', error);
+    console.error('Error code:', error.code);
+    console.error('Error message:', error.message);
+    console.error('Full error:', JSON.stringify(error, null, 2));
 
     // Handle specific Firebase errors
     if (error.code === 'auth/email-already-in-use') {
