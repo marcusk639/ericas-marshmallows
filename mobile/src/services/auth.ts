@@ -165,10 +165,18 @@ const createOrUpdateUserProfile = async (
  */
 export const useGoogleAuth = () => {
   const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+  const iosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
 
   if (!webClientId) {
     throw new Error(
       'Missing EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID environment variable. ' +
+      'Please add it to your .env file.'
+    );
+  }
+
+  if (!iosClientId) {
+    throw new Error(
+      'Missing EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID environment variable. ' +
       'Please add it to your .env file.'
     );
   }
@@ -180,6 +188,7 @@ export const useGoogleAuth = () => {
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     webClientId,
+    iosClientId,
     redirectUri,
   });
 
