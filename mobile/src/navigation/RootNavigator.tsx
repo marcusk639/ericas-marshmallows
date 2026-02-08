@@ -2,6 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { RootTabParamList } from './types';
 import HomeScreen from '../screens/HomeScreen';
+import MarshmallowsScreen from '../screens/MarshmallowsScreen';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
@@ -22,13 +23,12 @@ export default function RootNavigator() {
     >
       <Tab.Screen
         name="Marshmallows"
+        component={MarshmallowsScreen}
         options={{
           title: 'Marshmallows',
           tabBarLabel: 'Marshmallows',
         }}
-      >
-        {() => <HomeScreen title="Marshmallows" />}
-      </Tab.Screen>
+      />
 
       <Tab.Screen
         name="CheckIn"
