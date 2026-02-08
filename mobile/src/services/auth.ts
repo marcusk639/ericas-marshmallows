@@ -5,10 +5,15 @@ import {
   onAuthStateChanged,
   User as FirebaseUser,
 } from 'firebase/auth';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import * as Google from 'expo-auth-session/providers/google';
+import * as WebBrowser from 'expo-web-browser';
 import { doc, setDoc, getDoc, serverTimestamp, runTransaction } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
 import type { User, Couple, CoupleConfig } from '../../../shared/types';
+import { makeRedirectUri } from 'expo-auth-session';
+
+// Complete web browser auth session
+WebBrowser.maybeCompleteAuthSession();
 
 // Couple configuration - Marcus and Erica
 // Email addresses are loaded from environment variables for security
@@ -24,26 +29,6 @@ const COUPLE_CONFIG: CoupleConfig = {
       role: 'partner2',
     },
   },
-};
-
-/**
- * Initialize Google Sign-In configuration
- * Must be called before using Google Sign-In
- */
-export const configureGoogleSignIn = () => {
-  const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
-
-  if (!webClientId) {
-    throw new Error(
-      'Missing EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID environment variable. ' +
-      'Please add it to your .env file.'
-    );
-  }
-
-  GoogleSignin.configure({
-    webClientId,
-    offlineAccess: true,
-  });
 };
 
 /**
@@ -100,29 +85,32 @@ const createCoupleIfNeeded = async (userId: string, userName: string): Promise<v
               ...coupleData.memberNames,
               [userId]: userName,
             },
+            updatedAt: serverTimestamp(),
           });
           console.log('Updated couple document with second partner');
         }
       } else {
-        // First person to sign in - create couple document with placeholder
+        // Couple doesn't exist yet - create with first user
         transaction.set(coupleRef, {
-          createdAt: serverTimestamp(),
-          memberIds: [userId, ''] as [string, string], // Placeholder for second member
+          memberIds: [userId] as unknown as [string, string],
           memberNames: {
             [userId]: userName,
           },
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
         });
-        console.log('Created couple document with first partner');
+        console.log('Created couple document for first partner');
       }
     });
   } catch (error) {
     console.error('Error creating/updating couple:', error);
-    throw new Error('Failed to initialize couple. Please try again.');
+    throw new Error('Failed to set up couple connection. Please try again.');
   }
 };
 
 /**
  * Create or update user profile in Firestore
+ * Called after successful Google sign-in
  */
 const createOrUpdateUserProfile = async (
   firebaseUser: FirebaseUser,
@@ -172,23 +160,47 @@ const createOrUpdateUserProfile = async (
 };
 
 /**
- * Sign in with Google
+ * Use Google authentication hook
+ * Call this at the component level to set up Google auth
+ */
+export const useGoogleAuth = () => {
+  const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+
+  if (!webClientId) {
+    throw new Error(
+      'Missing EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID environment variable. ' +
+      'Please add it to your .env file.'
+    );
+  }
+
+  const redirectUri = makeRedirectUri({
+    scheme: 'com.yourcompany.ericasmarshmallows',
+    path: 'redirect',
+  });
+
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    webClientId,
+    redirectUri,
+  });
+
+  return { request, response, promptAsync };
+};
+
+/**
+ * Sign in with Google using the auth response
  * Validates that the user is either Marcus or Erica
  * Creates user profile and couple document in Firestore
  */
-export const signInWithGoogle = async (): Promise<FirebaseUser> => {
+export const signInWithGoogle = async (idToken: string, accessToken: string): Promise<FirebaseUser> => {
   try {
-    // Check if Google Play services are available (Android only)
-    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+    // Create Google credential
+    const credential = GoogleAuthProvider.credential(idToken, accessToken);
 
-    // Sign in with Google
-    const userInfo = await GoogleSignin.signIn();
+    // Sign in to Firebase with Google credential
+    const userCredential = await signInWithCredential(auth, credential);
+    const firebaseUser = userCredential.user;
 
-    if (!userInfo.data?.idToken) {
-      throw new Error('Failed to get Google ID token');
-    }
-
-    const email = userInfo.data.user.email;
+    const email = firebaseUser.email;
 
     if (!email) {
       throw new Error('Failed to get email from Google account');
@@ -198,43 +210,25 @@ export const signInWithGoogle = async (): Promise<FirebaseUser> => {
     const memberConfig = getMemberConfig(email);
 
     if (!memberConfig) {
-      // Sign out from Google if not authorized
-      await GoogleSignin.signOut();
+      // Sign out from Firebase if not authorized
+      await firebaseSignOut(auth);
       throw new Error(
         'This app is only available to Marcus and Erica. ' +
         'Please sign in with an authorized account.'
       );
     }
 
-    // Create Google credential
-    const credential = GoogleAuthProvider.credential(userInfo.data.idToken);
+    // Create or update user profile in Firestore
+    await createOrUpdateUserProfile(firebaseUser, memberConfig.name);
 
-    // Sign in to Firebase
-    const userCredential = await signInWithCredential(auth, credential);
-
-    // Create or update user profile and couple document
-    await createOrUpdateUserProfile(userCredential.user, memberConfig.name);
-
-    console.log('Successfully signed in:', memberConfig.name);
-    return userCredential.user;
-  } catch (error: any) {
+    console.log(`Successfully signed in as ${memberConfig.name}`);
+    return firebaseUser;
+  } catch (error) {
     console.error('Error signing in with Google:', error);
-
-    // Handle specific error cases
-    if (error.code === 'auth/popup-closed-by-user') {
-      throw new Error('Sign-in was cancelled. Please try again.');
-    }
-
-    if (error.code === 'auth/network-request-failed') {
-      throw new Error('Network error. Please check your connection and try again.');
-    }
-
-    // Re-throw custom errors
-    if (error.message.includes('only available to Marcus and Erica')) {
+    if (error instanceof Error) {
       throw error;
     }
-
-    throw new Error('Failed to sign in. Please try again.');
+    throw new Error('Failed to sign in with Google. Please try again.');
   }
 };
 
@@ -243,12 +237,7 @@ export const signInWithGoogle = async (): Promise<FirebaseUser> => {
  */
 export const signOut = async (): Promise<void> => {
   try {
-    // Sign out from Google
-    await GoogleSignin.signOut();
-
-    // Sign out from Firebase
     await firebaseSignOut(auth);
-
     console.log('Successfully signed out');
   } catch (error) {
     console.error('Error signing out:', error);
@@ -257,41 +246,26 @@ export const signOut = async (): Promise<void> => {
 };
 
 /**
- * Get the current authenticated user
+ * Get the currently signed-in Firebase user
  */
 export const getCurrentUser = (): FirebaseUser | null => {
   return auth.currentUser;
 };
 
 /**
- * Listen to authentication state changes
- * Returns an unsubscribe function
+ * Subscribe to auth state changes
+ * Returns unsubscribe function
  */
-export const onAuthStateChange = (
+export const subscribeToAuthChanges = (
   callback: (user: FirebaseUser | null) => void
 ): (() => void) => {
   return onAuthStateChanged(auth, callback);
 };
 
 /**
- * Check if the current user has a partner
- * Returns true if both Marcus and Erica have signed in
+ * Get user profile from Firestore
  */
-export const hasPartner = async (): Promise<boolean> => {
-  const currentUser = getCurrentUser();
-
-  if (!currentUser) {
-    return false;
-  }
-
-  const partnerId = await getPartnerId(currentUser.uid);
-  return !!partnerId && partnerId !== '';
-};
-
-/**
- * Get the current user's profile from Firestore
- */
-export const getUserProfile = async (userId: string): Promise<User | null> => {
+export const getUserProfile = async (userId: string): Promise<(User & { id: string }) | null> => {
   try {
     const userRef = doc(db, 'users', userId);
     const userDoc = await getDoc(userRef);
@@ -300,9 +274,27 @@ export const getUserProfile = async (userId: string): Promise<User | null> => {
       return null;
     }
 
-    return { ...userDoc.data(), id: userDoc.id } as User & { id: string };
+    return {
+      id: userDoc.id,
+      ...userDoc.data(),
+    } as User & { id: string };
   } catch (error) {
     console.error('Error getting user profile:', error);
     return null;
   }
+};
+
+/**
+ * Check if the current user's account is set up
+ * Returns true if user has completed profile setup
+ */
+export const isAccountSetup = async (): Promise<boolean> => {
+  const user = getCurrentUser();
+
+  if (!user) {
+    return false;
+  }
+
+  const profile = await getUserProfile(user.uid);
+  return profile !== null;
 };

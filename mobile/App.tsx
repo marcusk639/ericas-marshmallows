@@ -6,7 +6,7 @@ import type { NavigationContainerRef } from '@react-navigation/native';
 import { User as FirebaseUser } from 'firebase/auth';
 import * as Notifications from 'expo-notifications';
 import { LoginScreen } from './src/screens/LoginScreen';
-import { configureGoogleSignIn, onAuthStateChange } from './src/services/auth';
+import { subscribeToAuthChanges } from './src/services/auth';
 import { initializePushNotifications } from './src/services/notifications';
 import RootNavigator from './src/navigation/RootNavigator';
 import type { RootTabParamList } from './src/navigation/types';
@@ -18,22 +18,8 @@ export default function App() {
   const navigationRef = useRef<NavigationContainerRef<RootTabParamList>>(null);
 
   useEffect(() => {
-    // Configure Google Sign-In
-    try {
-      configureGoogleSignIn();
-    } catch (error) {
-      console.error('Error configuring Google Sign-In:', error);
-      setConfigError(
-        error instanceof Error
-          ? error.message
-          : 'Failed to configure Google Sign-In. Please check your environment configuration.'
-      );
-      setLoading(false);
-      return;
-    }
-
     // Listen for auth state changes
-    const unsubscribe = onAuthStateChange((user) => {
+    const unsubscribe = subscribeToAuthChanges((user) => {
       setUser(user);
       setLoading(false);
     });

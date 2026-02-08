@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,23 +8,56 @@ import {
   Alert,
   SafeAreaView,
 } from "react-native";
-import { signInWithGoogle } from "../services/auth";
+import { signInWithGoogle, useGoogleAuth } from "../services/auth";
 
 export const LoginScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
+  const { request, response, promptAsync } = useGoogleAuth();
 
-  const handleGoogleSignIn = async () => {
+  // Handle Google auth response
+  useEffect(() => {
+    if (response?.type === 'success') {
+      const { authentication } = response;
+      if (authentication?.idToken && authentication?.accessToken) {
+        handleSignInWithTokens(authentication.idToken, authentication.accessToken);
+      }
+    } else if (response?.type === 'error') {
+      Alert.alert(
+        "Sign In Failed",
+        "Failed to authenticate with Google. Please try again.",
+        [{ text: "OK" }]
+      );
+      setLoading(false);
+    } else if (response?.type === 'dismiss' || response?.type === 'cancel') {
+      setLoading(false);
+    }
+  }, [response]);
+
+  const handleSignInWithTokens = async (idToken: string, accessToken: string) => {
     try {
-      setLoading(true);
-      await signInWithGoogle();
+      await signInWithGoogle(idToken, accessToken);
       // Navigation to main app will be handled by auth state change in App.tsx
     } catch (error: any) {
       Alert.alert(
         "Sign In Failed",
         error.message || "An unexpected error occurred. Please try again.",
-        [{ text: "OK" }],
+        [{ text: "OK" }]
       );
     } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setLoading(true);
+      await promptAsync();
+    } catch (error: any) {
+      Alert.alert(
+        "Sign In Failed",
+        error.message || "An unexpected error occurred. Please try again.",
+        [{ text: "OK" }]
+      );
       setLoading(false);
     }
   };
@@ -46,10 +79,10 @@ export const LoginScreen: React.FC = () => {
           <TouchableOpacity
             style={[
               styles.signInButton,
-              loading && styles.signInButtonDisabled,
+              (loading || !request) && styles.signInButtonDisabled,
             ]}
             onPress={handleGoogleSignIn}
-            disabled={loading}
+            disabled={loading || !request}
             activeOpacity={0.8}
           >
             {loading ? (
