@@ -4,6 +4,7 @@ import { RootTabParamList } from './types';
 import HomeScreen from '../screens/HomeScreen';
 import MarshmallowsScreen from '../screens/MarshmallowsScreen';
 import DailyCheckinScreen from '../screens/DailyCheckinScreen';
+import MemoriesScreen from '../screens/MemoriesScreen';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
@@ -42,13 +43,12 @@ export default function RootNavigator() {
 
       <Tab.Screen
         name="Memories"
+        component={MemoriesScreen}
         options={{
           title: 'Memories',
           tabBarLabel: 'Memories',
         }}
-      >
-        {() => <HomeScreen title="Memories" />}
-      </Tab.Screen>
+      />
 
       <Tab.Screen
         name="Profile"
