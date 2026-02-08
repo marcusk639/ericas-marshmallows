@@ -182,8 +182,8 @@ export const useGoogleAuth = () => {
   }
 
   const redirectUri = makeRedirectUri({
-    scheme: 'com.yourcompany.ericasmarshmallows',
-    path: 'redirect',
+    scheme: 'com.ericasmarshmallows.app',
+    useProxy: true,
   });
 
   const [request, response, promptAsync] = Google.useAuthRequest({
