@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
 import { User as FirebaseUser } from 'firebase/auth';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { configureGoogleSignIn, onAuthStateChange } from './src/services/auth';
+import RootNavigator from './src/navigation/RootNavigator';
 
 export default function App() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
@@ -67,13 +69,12 @@ export default function App() {
     );
   }
 
-  // Main app content (placeholder for now)
+  // Main app content with navigation
   return (
-    <View style={styles.container}>
-      <Text style={styles.welcomeText}>Welcome, {user.displayName || 'User'}!</Text>
-      <Text style={styles.emailText}>{user.email}</Text>
+    <NavigationContainer>
+      <RootNavigator />
       <StatusBar style="auto" />
-    </View>
+    </NavigationContainer>
   );
 }
 
@@ -112,23 +113,6 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   loadingText: {
-    fontSize: 16,
-    color: '#64748B',
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#FFF5F7',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  welcomeText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#D946A6',
-    marginBottom: 8,
-  },
-  emailText: {
     fontSize: 16,
     color: '#64748B',
   },
