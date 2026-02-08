@@ -2,6 +2,114 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user email is authorized (Marcus or Erica)
+    function isAuthorizedEmail() {
+      return isAuthenticated() && (
+        request.auth.token.email == 'marcusk639@gmail.com' ||
+        request.auth.token.email == 'ericajure@gmail.com'
+      );
+    }
+
+    // Helper function to check if accessing own user document
+    function isOwnUser(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Helper function to check if user is part of the couple
+    function isCoupleMember(coupleId) {
+      return isAuthorizedEmail() && coupleId == 'marcus-erica';
+    }
+
+    // Users collection rules
+    match /users/{userId} {
+      // Allow authenticated users to read their own profile
+      allow read: if isOwnUser(userId);
+
+      // Allow authenticated authorized users to create their own profile
+      allow create: if isOwnUser(userId) && isAuthorizedEmail() &&
+        request.resource.data.email == request.auth.token.email &&
+        request.resource.data.coupleId == 'marcus-erica';
+
+      // Allow users to update their own profile (settings, photo, etc.)
+      allow update: if isOwnUser(userId) && isAuthorizedEmail();
+
+      // Users can read their partner's profile
+      allow read: if isAuthorizedEmail();
+    }
+
+    // Couples collection rules
+    match /couples/{coupleId} {
+      // Allow couple members to read couple document
+      allow read: if isCoupleMember(coupleId);
+
+      // Allow authorized users to create the couple document
+      allow create: if isCoupleMember(coupleId) && isAuthorizedEmail();
+
+      // Allow couple members to update the couple document
+      allow update: if isCoupleMember(coupleId) && isAuthorizedEmail();
+    }
+
+    // Marshmallows collection rules
+    match /marshmallows/{marshmallowId} {
+      // Allow couple members to read marshmallows
+      allow read: if isCoupleMember(resource.data.coupleId);
+
+      // Allow couple members to create marshmallows
+      allow create: if isCoupleMember(request.resource.data.coupleId) &&
+        isAuthorizedEmail() &&
+        request.resource.data.senderId == request.auth.uid;
+
+      // Allow sender to update their own marshmallow (before it's read)
+      allow update: if isCoupleMember(resource.data.coupleId) &&
+        resource.data.senderId == request.auth.uid;
+    }
+
+    // Memories collection rules
+    match /memories/{memoryId} {
+      // Allow couple members to read memories
+      allow read: if isCoupleMember(resource.data.coupleId);
+
+      // Allow couple members to create memories
+      allow create: if isCoupleMember(request.resource.data.coupleId) &&
+        isAuthorizedEmail() &&
+        request.resource.data.createdBy == request.auth.uid;
+
+      // Allow creator to update their own memory
+      allow update: if isCoupleMember(resource.data.coupleId) &&
+        resource.data.createdBy == request.auth.uid;
+
+      // Allow creator to delete their own memory
+      allow delete: if isCoupleMember(resource.data.coupleId) &&
+        resource.data.createdBy == request.auth.uid;
+    }
+
+    // Check-ins collection rules
+    match /checkins/{checkinId} {
+      // Allow couple members to read check-ins
+      allow read: if isCoupleMember(resource.data.coupleId);
+
+      // Allow couple members to create check-ins
+      allow create: if isCoupleMember(request.resource.data.coupleId) &&
+        isAuthorizedEmail() &&
+        request.resource.data.userId == request.auth.uid;
+
+      // Allow user to update their own check-in
+      allow update: if isCoupleMember(resource.data.coupleId) &&
+        resource.data.userId == request.auth.uid;
+    }
+
+    // Quick picks collection (read-only reference data)
+    match /quickPicks/{pickId} {
+      allow read: if isAuthorizedEmail();
+    }
+
+    // Deny all other access by default
     match /{document=**} {
       allow read, write: if false;
     }
