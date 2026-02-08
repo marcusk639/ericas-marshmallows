@@ -1,0 +1,16 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Secure defaults - deny all access by default
+    // These rules will be updated as the application is developed
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Future rules will be added here for:
+    // - User profiles
+    // - Marshmallow messages
+    // - Friend relationships
+  }
+}
