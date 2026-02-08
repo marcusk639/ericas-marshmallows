@@ -180,9 +180,13 @@ export const useGoogleAuth = () => {
     );
   }
 
+  // For development build, we need to specify a scheme-based redirect URI
+  const redirectUri = `ericasmarshmallows://`;
+
   const [request, response, promptAsync] = Google.useAuthRequest({
     webClientId,
     iosClientId,
+    redirectUri,
   });
 
   return { request, response, promptAsync };
