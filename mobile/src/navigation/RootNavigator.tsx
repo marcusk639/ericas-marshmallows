@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { RootTabParamList } from './types';
 import HomeScreen from '../screens/HomeScreen';
 import MarshmallowsScreen from '../screens/MarshmallowsScreen';
+import DailyCheckinScreen from '../screens/DailyCheckinScreen';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
@@ -32,13 +33,12 @@ export default function RootNavigator() {
 
       <Tab.Screen
         name="CheckIn"
+        component={DailyCheckinScreen}
         options={{
           title: 'Check-In',
           tabBarLabel: 'Check-In',
         }}
-      >
-        {() => <HomeScreen title="Check-In" />}
-      </Tab.Screen>
+      />
 
       <Tab.Screen
         name="Memories"
