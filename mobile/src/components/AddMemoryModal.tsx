@@ -75,6 +75,57 @@ export const AddMemoryModal: React.FC<AddMemoryModalProps> = ({
     }
   };
 
+  const handleTakePhoto = async () => {
+    if (Platform.OS !== 'web') {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission Required',
+          'Please grant camera permission to take photos.'
+        );
+        return;
+      }
+    }
+
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ['images'],
+        quality: 0.8,
+        allowsEditing: true,
+        aspect: [4, 3],
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setPhotoUris([...photoUris, result.assets[0].uri]);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      Alert.alert('Error', 'Failed to take photo. Please try again.');
+    }
+  };
+
+  const handleAddPhotoOptions = () => {
+    Alert.alert(
+      'Add Photo',
+      'Choose where to add photos from',
+      [
+        {
+          text: 'Take Photo',
+          onPress: handleTakePhoto,
+        },
+        {
+          text: 'Choose from Library',
+          onPress: handlePickImages,
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
   const handleRemovePhoto = (index: number) => {
     setPhotoUris(photoUris.filter((_, i) => i !== index));
   };
@@ -187,7 +238,7 @@ export const AddMemoryModal: React.FC<AddMemoryModalProps> = ({
               {photoUris.length < 5 && (
                 <TouchableOpacity
                   style={styles.addPhotoButton}
-                  onPress={handlePickImages}
+                  onPress={handleAddPhotoOptions}
                   disabled={creating}
                 >
                   <Text style={styles.addPhotoIcon}>+</Text>
