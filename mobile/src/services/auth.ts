@@ -10,7 +10,6 @@ import * as WebBrowser from 'expo-web-browser';
 import { doc, setDoc, getDoc, serverTimestamp, runTransaction } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
 import type { User, Couple, CoupleConfig } from '../../../shared/types';
-import { makeRedirectUri } from 'expo-auth-session';
 
 // Complete web browser auth session
 WebBrowser.maybeCompleteAuthSession();
@@ -181,15 +180,9 @@ export const useGoogleAuth = () => {
     );
   }
 
-  const redirectUri = makeRedirectUri({
-    scheme: 'com.ericasmarshmallows.app',
-    useProxy: true,
-  });
-
   const [request, response, promptAsync] = Google.useAuthRequest({
     webClientId,
     iosClientId,
-    redirectUri,
   });
 
   return { request, response, promptAsync };
