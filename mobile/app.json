@@ -22,7 +22,8 @@
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
         }
-      }
+      },
+      "appleTeamId": "D8K3FS4HAX"
     },
     "android": {
       "adaptiveIcon": {

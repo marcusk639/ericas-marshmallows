@@ -47,17 +47,21 @@ export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getA
 console.log('✓ Firebase app initialized:', app.name);
 
 // Initialize auth with React Native AsyncStorage persistence
-// Use getAuth if already initialized (handles hot reload)
+// Try to initialize with persistence first, fall back to existing instance on hot reload
 let auth: Auth;
 try {
-  auth = getAuth(app);
-  console.log('✓ Using existing Firebase Auth instance');
-} catch {
   // @ts-ignore - getReactNativePersistence exists at runtime but not in TS definitions (Firebase 12 issue)
   auth = initializeAuth(app, {
     persistence: getReactNativePersistence(AsyncStorage)
   });
-  console.log('✓ Firebase Auth initialized with persistence');
+  console.log('✓ Firebase Auth initialized with AsyncStorage persistence');
+} catch (error: any) {
+  // Auth already initialized (hot reload), use existing instance
+  auth = getAuth(app);
+  console.log('✓ Using existing Firebase Auth instance (hot reload detected)');
+  if (error?.code === 'auth/already-initialized') {
+    console.log('   Note: Persistence was set on first initialization');
+  }
 }
 export { auth };
 console.log('Auth config check:', {
