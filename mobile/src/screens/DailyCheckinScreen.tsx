@@ -77,7 +77,9 @@ export default function DailyCheckinScreen() {
   // Show completion state if user has already checked in
   if (myCheckin) {
     const myMood = MOOD_OPTIONS.find((m) => m.type === myCheckin.mood);
-    const myMoodDisplay = myMood ? myMood.label.toLowerCase() : myCheckin.mood.toLowerCase();
+    const myMoodDisplay = myMood
+      ? myMood.label.toLowerCase()
+      : myCheckin.mood.trim().toLowerCase();
 
     const partnerMood = partnerCheckin
       ? MOOD_OPTIONS.find((m) => m.type === partnerCheckin.mood)
@@ -86,7 +88,7 @@ export default function DailyCheckinScreen() {
       ? (partnerMood ? partnerMood.emoji : '💭')
       : null;
     const partnerMoodLabel = partnerCheckin
-      ? (partnerMood ? partnerMood.label : partnerCheckin.mood)
+      ? (partnerMood ? partnerMood.label : partnerCheckin.mood.trim())
       : null;
 
     return (

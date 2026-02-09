@@ -13,8 +13,9 @@ export default function MoodSelector({ selectedMood, onSelect }: MoodSelectorPro
   const [customMoodText, setCustomMoodText] = useState('');
 
   const handleCustomMoodSubmit = () => {
-    if (customMoodText.trim()) {
-      onSelect(customMoodText.trim());
+    const trimmedMood = customMoodText.trim();
+    if (trimmedMood && trimmedMood.length >= 2) {
+      onSelect(trimmedMood);
       setCustomModalVisible(false);
       setCustomMoodText('');
     }
@@ -57,7 +58,11 @@ export default function MoodSelector({ selectedMood, onSelect }: MoodSelectorPro
           activeOpacity={0.7}
         >
           <Text style={styles.emoji}>✏️</Text>
-          <Text style={[styles.label, isCustomMood && styles.labelSelected]}>
+          <Text
+            style={[styles.label, isCustomMood && styles.labelSelected]}
+            numberOfLines={2}
+            ellipsizeMode="tail"
+          >
             {isCustomMood ? selectedMood : 'Custom'}
           </Text>
         </TouchableOpacity>
@@ -78,9 +83,16 @@ export default function MoodSelector({ selectedMood, onSelect }: MoodSelectorPro
               placeholder="e.g., anxious, hopeful, grateful..."
               value={customMoodText}
               onChangeText={setCustomMoodText}
+              onSubmitEditing={handleCustomMoodSubmit}
+              returnKeyType="done"
               autoFocus
+              autoCapitalize="none"
+              autoCorrect={false}
               maxLength={50}
             />
+            <Text style={styles.modalHelper}>
+              At least 2 characters, up to 50
+            </Text>
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={[styles.modalButton, styles.modalButtonCancel]}
@@ -92,9 +104,13 @@ export default function MoodSelector({ selectedMood, onSelect }: MoodSelectorPro
                 <Text style={styles.modalButtonTextCancel}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalButton, styles.modalButtonSubmit]}
+                style={[
+                  styles.modalButton,
+                  styles.modalButtonSubmit,
+                  (!customMoodText.trim() || customMoodText.trim().length < 2) && styles.modalButtonDisabled
+                ]}
                 onPress={handleCustomMoodSubmit}
-                disabled={!customMoodText.trim()}
+                disabled={!customMoodText.trim() || customMoodText.trim().length < 2}
               >
                 <Text style={styles.modalButtonTextSubmit}>Done</Text>
               </TouchableOpacity>
@@ -170,6 +186,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#1F2937',
   },
+  modalHelper: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    textAlign: 'center',
+    marginTop: -12,
+  },
   modalButtons: {
     flexDirection: 'row',
     gap: 12,
@@ -185,6 +207,10 @@ const styles = StyleSheet.create({
   },
   modalButtonSubmit: {
     backgroundColor: '#D946A6',
+  },
+  modalButtonDisabled: {
+    backgroundColor: '#E5E7EB',
+    opacity: 0.6,
   },
   modalButtonTextCancel: {
     color: '#6B7280',
