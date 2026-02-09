@@ -410,6 +410,11 @@ export const signInWithEmail = async (
       throw new Error('Invalid email address.');
     } else if (error.code === 'auth/too-many-requests') {
       throw new Error('Too many failed attempts. Please try again later.');
+    } else if (error.code === 'auth/network-request-failed') {
+      throw new Error(
+        'Network error: Cannot reach Firebase servers. ' +
+        'Please check your internet connection and try again.'
+      );
     }
 
     if (error instanceof Error) {

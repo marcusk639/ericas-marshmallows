@@ -32,6 +32,9 @@ export default function MoodSelector({ selectedMood, onSelect }: MoodSelectorPro
             <TouchableOpacity
               key={mood.type}
               testID={`mood-button-${mood.type}`}
+              accessibilityLabel={`${mood.label} mood`}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isSelected }}
               style={[
                 styles.moodButton,
                 isSelected && styles.moodButtonSelected,
@@ -50,6 +53,10 @@ export default function MoodSelector({ selectedMood, onSelect }: MoodSelectorPro
         {/* Custom mood button */}
         <TouchableOpacity
           testID="mood-button-custom"
+          accessibilityLabel={isCustomMood ? `Custom mood: ${selectedMood}` : 'Enter custom mood'}
+          accessibilityRole="button"
+          accessibilityState={{ selected: !!isCustomMood }}
+          accessibilityHint="Opens a text input to enter your own mood"
           style={[
             styles.moodButton,
             isCustomMood && styles.moodButtonSelected,
@@ -89,6 +96,8 @@ export default function MoodSelector({ selectedMood, onSelect }: MoodSelectorPro
               autoCapitalize="none"
               autoCorrect={false}
               maxLength={50}
+              accessibilityLabel="Custom mood input"
+              accessibilityHint="Enter your mood, at least 2 characters"
             />
             <Text style={styles.modalHelper}>
               At least 2 characters, up to 50
