@@ -123,14 +123,16 @@ const createOrUpdateUserProfile = async (
     const userDoc = await getDoc(userRef);
 
     if (userDoc.exists()) {
-      // User exists, update photo URL if changed
-      await setDoc(
-        userRef,
-        {
-          photoUrl: firebaseUser.photoURL || undefined,
-        },
-        { merge: true }
-      );
+      // User exists, update photo URL if changed (only if it exists)
+      if (firebaseUser.photoURL) {
+        await setDoc(
+          userRef,
+          {
+            photoUrl: firebaseUser.photoURL,
+          },
+          { merge: true }
+        );
+      }
       console.log('Updated existing user profile');
     } else {
       // Create new user profile
