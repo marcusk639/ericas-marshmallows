@@ -91,8 +91,11 @@ service cloud.firestore {
 
     // Daily check-ins collection rules
     match /dailyCheckins/{checkinId} {
-      // Allow couple members to read check-ins
-      allow read: if isCoupleMember(resource.data.coupleId);
+      // Allow reading individual documents
+      allow get: if isCoupleMember(resource.data.coupleId);
+
+      // Allow querying/listing check-ins (for authorized users only)
+      allow list: if isAuthorizedEmail();
 
       // Allow couple members to create check-ins
       allow create: if isCoupleMember(request.resource.data.coupleId) &&
