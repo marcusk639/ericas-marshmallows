@@ -1,6 +1,6 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps } from 'firebase/app';
 // @ts-ignore - getReactNativePersistence exists at runtime but not in TS definitions (Firebase 12 issue)
-import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import { initializeAuth, getReactNativePersistence, getAuth, type Auth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -36,18 +36,36 @@ const firebaseConfig = {
 };
 
 // Debug: Log Firebase config (temporary - remove after debugging)
+console.log('=== FIREBASE INITIALIZATION ===');
 console.log('Firebase Config:', {
   ...firebaseConfig,
   apiKey: firebaseConfig.apiKey?.substring(0, 10) + '...' // Only show first 10 chars
 });
 
-export const app = initializeApp(firebaseConfig);
+// Check if Firebase app is already initialized (handles hot reload)
+export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+console.log('✓ Firebase app initialized:', app.name);
 
 // Initialize auth with React Native AsyncStorage persistence
-// This ensures auth state persists between app restarts
-export const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage)
+// Use getAuth if already initialized (handles hot reload)
+let auth: Auth;
+try {
+  auth = getAuth(app);
+  console.log('✓ Using existing Firebase Auth instance');
+} catch {
+  // @ts-ignore - getReactNativePersistence exists at runtime but not in TS definitions (Firebase 12 issue)
+  auth = initializeAuth(app, {
+    persistence: getReactNativePersistence(AsyncStorage)
+  });
+  console.log('✓ Firebase Auth initialized with persistence');
+}
+export { auth };
+console.log('Auth config check:', {
+  apiKey: auth.config.apiKey?.substring(0, 10) + '...',
+  authDomain: auth.config.authDomain,
 });
 
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+console.log('✓ Firestore and Storage initialized');
+console.log('=================================');

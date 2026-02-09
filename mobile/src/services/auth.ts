@@ -381,6 +381,9 @@ export const signInWithEmail = async (
   password: string
 ): Promise<FirebaseUser> => {
   try {
+    console.log('=== SIGN IN ATTEMPT ===');
+    console.log('Email:', email);
+
     // Validate email is authorized (Marcus or Erica)
     const memberConfig = getMemberConfig(email);
 
@@ -391,17 +394,42 @@ export const signInWithEmail = async (
       );
     }
 
+    console.log('✓ Email authorized as:', memberConfig.name);
+    console.log('Auth instance check:', {
+      exists: !!auth,
+      appName: auth.app.name,
+      authDomain: auth.config.authDomain,
+    });
+
+    // Test basic network connectivity before Firebase call
+    console.log('Testing network connectivity...');
+    try {
+      const response = await fetch('https://www.google.com', { method: 'HEAD' });
+      console.log('✓ Network is reachable (Google responded with status:', response.status, ')');
+    } catch (netError) {
+      console.error('✗ Basic network test failed:', netError);
+      throw new Error('No internet connection detected. Please check your network settings.');
+    }
+
     // Sign in with email and password
+    console.log('Calling Firebase signInWithEmailAndPassword...');
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    console.log('✓ Firebase sign-in successful');
     const firebaseUser = userCredential.user;
 
     // Ensure profile exists in Firestore
+    console.log('Creating/updating user profile in Firestore...');
     await createOrUpdateUserProfile(firebaseUser, memberConfig.name);
 
-    console.log(`Successfully signed in as ${memberConfig.name}`);
+    console.log(`✓ Successfully signed in as ${memberConfig.name}`);
+    console.log('======================');
     return firebaseUser;
   } catch (error: any) {
-    console.error('Error signing in with email:', error);
+    console.error('=== SIGN IN ERROR ===');
+    console.error('Error code:', error.code);
+    console.error('Error message:', error.message);
+    console.error('Full error:', error);
+    console.error('====================');
 
     // Handle specific Firebase errors
     if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
@@ -413,7 +441,8 @@ export const signInWithEmail = async (
     } else if (error.code === 'auth/network-request-failed') {
       throw new Error(
         'Network error: Cannot reach Firebase servers. ' +
-        'Please check your internet connection and try again.'
+        'Please check your internet connection and try again. ' +
+        '(Your device can reach Google but not Firebase - this may indicate a firewall or proxy issue)'
       );
     }
 
