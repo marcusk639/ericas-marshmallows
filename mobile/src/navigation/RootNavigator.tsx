@@ -1,5 +1,6 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
 import { RootTabParamList } from './types';
 import HomeScreen from '../screens/HomeScreen';
 import MarshmallowsScreen from '../screens/MarshmallowsScreen';
@@ -30,6 +31,9 @@ export default function RootNavigator() {
         options={{
           title: 'Home',
           tabBarLabel: 'Home',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="home" size={size} color={color} />
+          ),
         }}
       />
 
@@ -39,6 +43,9 @@ export default function RootNavigator() {
         options={{
           title: 'Marshmallows',
           tabBarLabel: 'Marshmallows',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="heart" size={size} color={color} />
+          ),
         }}
       />
 
@@ -48,6 +55,9 @@ export default function RootNavigator() {
         options={{
           title: 'Check-In',
           tabBarLabel: 'Check-In',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="checkbox" size={size} color={color} />
+          ),
         }}
       />
 
@@ -57,6 +67,9 @@ export default function RootNavigator() {
         options={{
           title: 'Memories',
           tabBarLabel: 'Memories',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="images" size={size} color={color} />
+          ),
         }}
       />
 
@@ -66,6 +79,9 @@ export default function RootNavigator() {
         options={{
           title: 'Profile',
           tabBarLabel: 'Profile',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person" size={size} color={color} />
+          ),
         }}
       />
     </Tab.Navigator>
