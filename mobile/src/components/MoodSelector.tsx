@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput, Modal } from 'react-native';
 import { MOOD_OPTIONS } from '../../../shared/types';
 import type { MoodType } from '../../../shared/types';
 
@@ -9,29 +9,100 @@ interface MoodSelectorProps {
 }
 
 export default function MoodSelector({ selectedMood, onSelect }: MoodSelectorProps) {
+  const [customModalVisible, setCustomModalVisible] = useState(false);
+  const [customMoodText, setCustomMoodText] = useState('');
+
+  const handleCustomMoodSubmit = () => {
+    if (customMoodText.trim()) {
+      onSelect(customMoodText.trim());
+      setCustomModalVisible(false);
+      setCustomMoodText('');
+    }
+  };
+
+  const isCustomMood = selectedMood && !MOOD_OPTIONS.some(m => m.type === selectedMood);
+
   return (
-    <View style={styles.container}>
-      {MOOD_OPTIONS.map((mood) => {
-        const isSelected = selectedMood === mood.type;
-        return (
-          <TouchableOpacity
-            key={mood.type}
-            testID={`mood-button-${mood.type}`}
-            style={[
-              styles.moodButton,
-              isSelected && styles.moodButtonSelected,
-            ]}
-            onPress={() => onSelect(mood.type)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.emoji}>{mood.emoji}</Text>
-            <Text style={[styles.label, isSelected && styles.labelSelected]}>
-              {mood.label}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
-    </View>
+    <>
+      <View style={styles.container}>
+        {MOOD_OPTIONS.map((mood) => {
+          const isSelected = selectedMood === mood.type;
+          return (
+            <TouchableOpacity
+              key={mood.type}
+              testID={`mood-button-${mood.type}`}
+              style={[
+                styles.moodButton,
+                isSelected && styles.moodButtonSelected,
+              ]}
+              onPress={() => onSelect(mood.type)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.emoji}>{mood.emoji}</Text>
+              <Text style={[styles.label, isSelected && styles.labelSelected]}>
+                {mood.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+
+        {/* Custom mood button */}
+        <TouchableOpacity
+          testID="mood-button-custom"
+          style={[
+            styles.moodButton,
+            isCustomMood && styles.moodButtonSelected,
+          ]}
+          onPress={() => setCustomModalVisible(true)}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.emoji}>✏️</Text>
+          <Text style={[styles.label, isCustomMood && styles.labelSelected]}>
+            {isCustomMood ? selectedMood : 'Custom'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Custom mood input modal */}
+      <Modal
+        visible={customModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setCustomModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Enter your mood</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="e.g., anxious, hopeful, grateful..."
+              value={customMoodText}
+              onChangeText={setCustomMoodText}
+              autoFocus
+              maxLength={50}
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => {
+                  setCustomModalVisible(false);
+                  setCustomMoodText('');
+                }}
+              >
+                <Text style={styles.modalButtonTextCancel}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonSubmit]}
+                onPress={handleCustomMoodSubmit}
+                disabled={!customMoodText.trim()}
+              >
+                <Text style={styles.modalButtonTextSubmit}>Done</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 }
 
@@ -64,9 +135,65 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280',
     fontWeight: '500',
+    textAlign: 'center',
   },
   labelSelected: {
     color: '#D946A6',
     fontWeight: '700',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    gap: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    textAlign: 'center',
+  },
+  modalInput: {
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    color: '#1F2937',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  modalButtonCancel: {
+    backgroundColor: '#F3F4F6',
+  },
+  modalButtonSubmit: {
+    backgroundColor: '#D946A6',
+  },
+  modalButtonTextCancel: {
+    color: '#6B7280',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalButtonTextSubmit: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

@@ -77,8 +77,16 @@ export default function DailyCheckinScreen() {
   // Show completion state if user has already checked in
   if (myCheckin) {
     const myMood = MOOD_OPTIONS.find((m) => m.type === myCheckin.mood);
+    const myMoodDisplay = myMood ? myMood.label.toLowerCase() : myCheckin.mood.toLowerCase();
+
     const partnerMood = partnerCheckin
       ? MOOD_OPTIONS.find((m) => m.type === partnerCheckin.mood)
+      : null;
+    const partnerMoodDisplay = partnerCheckin
+      ? (partnerMood ? partnerMood.emoji : '💭')
+      : null;
+    const partnerMoodLabel = partnerCheckin
+      ? (partnerMood ? partnerMood.label : partnerCheckin.mood)
       : null;
 
     return (
@@ -92,7 +100,7 @@ export default function DailyCheckinScreen() {
         <View style={styles.completionCard}>
           <Text style={styles.completionEmoji}>✅</Text>
           <Text style={styles.completionTitle}>You've checked in today!</Text>
-          <Text style={styles.completionSubtitle}>You're feeling {myMood?.label.toLowerCase()}</Text>
+          <Text style={styles.completionSubtitle}>You're feeling {myMoodDisplay}</Text>
         </View>
 
         {/* My gratitude */}
@@ -102,12 +110,12 @@ export default function DailyCheckinScreen() {
         </View>
 
         {/* Partner's check-in */}
-        {partnerCheckin && partnerMood && (
+        {partnerCheckin && partnerMoodDisplay && (
           <View style={styles.partnerCard}>
             <Text style={styles.partnerLabel}>Your partner's mood</Text>
             <View style={styles.partnerMoodContainer}>
-              <Text style={styles.partnerMoodEmoji}>{partnerMood.emoji}</Text>
-              <Text style={styles.partnerMoodLabel}>{partnerMood.label}</Text>
+              <Text style={styles.partnerMoodEmoji}>{partnerMoodDisplay}</Text>
+              <Text style={styles.partnerMoodLabel}>{partnerMoodLabel}</Text>
             </View>
             <View style={styles.partnerGratitudeContainer}>
               <Text style={styles.gratitudeLabel}>Their gratitude</Text>

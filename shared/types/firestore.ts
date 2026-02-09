@@ -40,7 +40,9 @@ export interface Marshmallow {
   read: boolean;
 }
 
-export type MoodType = 'happy' | 'loving' | 'stressed' | 'excited' | 'peaceful' | 'down';
+// Predefined mood types (can also be any custom string)
+export type PredefinedMoodType = 'happy' | 'loving' | 'stressed' | 'excited' | 'peaceful' | 'down';
+export type MoodType = PredefinedMoodType | string;
 
 export interface DailyCheckin {
   coupleId: string;
