@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   createMemory as createMemoryService,
   uploadMemoryPhoto,
+  uploadMemoryVideo,
   getMemoriesByCouple,
 } from '../services/memories';
 import type { Memory, WithId } from '../../../shared/types';
@@ -38,7 +39,7 @@ export const useMemories = (coupleId: string | null, limit: number = 50) => {
   }, [loadMemories]);
 
   const refresh = useCallback(() => {
-    loadMemories();
+    return loadMemories();
   }, [loadMemories]);
 
   return {
@@ -62,6 +63,7 @@ export const useCreateMemory = (coupleId: string | null, userId: string | null) 
       title: string,
       description: string,
       photoUris: string[],
+      videoUris: string[],
       tags: string[],
       date: Date
     ): Promise<string> => {
@@ -74,22 +76,44 @@ export const useCreateMemory = (coupleId: string | null, userId: string | null) 
         setError(null);
         setUploadProgress(0);
 
+        const totalItems = photoUris.length + videoUris.length;
+        let itemsUploaded = 0;
+
         // Upload photos if any
         const photoUrls: string[] = [];
-
         if (photoUris.length > 0) {
           for (let i = 0; i < photoUris.length; i++) {
             const uri = photoUris[i];
             const url = await uploadMemoryPhoto(coupleId, uri, (progress) => {
-              // Calculate overall progress across all photos
-              const baseProgress = i / photoUris.length;
-              const currentPhotoProgress = progress / photoUris.length;
-              setUploadProgress(baseProgress + currentPhotoProgress);
+              // Calculate overall progress across all media
+              const baseProgress = itemsUploaded / totalItems;
+              const currentItemProgress = progress / totalItems;
+              setUploadProgress(baseProgress + currentItemProgress);
             });
             photoUrls.push(url);
+            itemsUploaded++;
+            setUploadProgress(itemsUploaded / totalItems);
           }
-          setUploadProgress(1); // Set to 100% when all uploads complete
         }
+
+        // Upload videos if any
+        const videoUrls: string[] = [];
+        if (videoUris.length > 0) {
+          for (let i = 0; i < videoUris.length; i++) {
+            const uri = videoUris[i];
+            const url = await uploadMemoryVideo(coupleId, uri, (progress) => {
+              // Calculate overall progress across all media
+              const baseProgress = itemsUploaded / totalItems;
+              const currentItemProgress = progress / totalItems;
+              setUploadProgress(baseProgress + currentItemProgress);
+            });
+            videoUrls.push(url);
+            itemsUploaded++;
+            setUploadProgress(itemsUploaded / totalItems);
+          }
+        }
+
+        setUploadProgress(1); // Set to 100% when all uploads complete
 
         // Create the memory document
         const memoryId = await createMemoryService(
@@ -98,6 +122,7 @@ export const useCreateMemory = (coupleId: string | null, userId: string | null) 
           title,
           description,
           photoUrls,
+          videoUrls,
           tags,
           date
         );

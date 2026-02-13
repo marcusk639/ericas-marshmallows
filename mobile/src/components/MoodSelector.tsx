@@ -150,8 +150,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   moodButtonSelected: {
-    borderColor: '#D946A6',
-    backgroundColor: '#FFF5F7',
+    borderColor: '#9370DB',
+    backgroundColor: '#F5F3FF',
   },
   emoji: {
     fontSize: 32,
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   labelSelected: {
-    color: '#D946A6',
+    color: '#9370DB',
     fontWeight: '700',
   },
   modalOverlay: {
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
   },
   modalButtonSubmit: {
-    backgroundColor: '#D946A6',
+    backgroundColor: '#9370DB',
   },
   modalButtonDisabled: {
     backgroundColor: '#E5E7EB',

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from "react";
 import {
   View,
   FlatList,
@@ -9,19 +9,41 @@ import {
   ScrollView,
   RefreshControl,
   Alert,
-} from 'react-native';
-import { useMemories, useMemoryTags } from '../hooks/useMemories';
-import { MemoryCard } from '../components/MemoryCard';
-import { AddMemoryModal } from '../components/AddMemoryModal';
-import { getCurrentUser, getUserProfile } from '../services/auth';
-import type { WithId, Memory } from '../../../shared/types';
+} from "react-native";
+import { useMemories, useMemoryTags } from "../hooks/useMemories";
+import { MemoryCard } from "../components/MemoryCard";
+import { AddMemoryModal } from "../components/AddMemoryModal";
+import { PhotoSuggestionsModal } from "../components/PhotoSuggestionsModal";
+import { BatchUploadModal } from "../components/BatchUploadModal";
+import { getCurrentUser, getUserProfile } from "../services/auth";
+import {
+  scanForMemorySuggestions,
+  type PhotoSuggestion,
+} from "../services/photoAnalysis";
+import type { WithId, Memory } from "../../../shared/types";
 
-export default function MemoriesScreen() {
+interface MemoriesScreenProps {
+  navigation: any;
+}
+
+export default function MemoriesScreen({ navigation }: MemoriesScreenProps) {
   const [coupleId, setCoupleId] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [suggestionsModalVisible, setSuggestionsModalVisible] = useState(false);
+  const [photoSuggestions, setPhotoSuggestions] = useState<PhotoSuggestion[]>(
+    [],
+  );
+  const [scanningPhotos, setScanningPhotos] = useState(false);
+  const [scanProgress, setScanProgress] = useState({
+    current: 0,
+    total: 0,
+    status: "",
+  });
+  const [preselectedPhotos, setPreselectedPhotos] = useState<string[]>([]);
+  const [batchUploadModalVisible, setBatchUploadModalVisible] = useState(false);
 
   const { memories, loading, refresh } = useMemories(coupleId);
   const allTags = useMemoryTags(memories);
@@ -49,7 +71,7 @@ export default function MemoriesScreen() {
     }
 
     return memories.filter((memory) =>
-      selectedTags.every((tag) => memory.tags.includes(tag))
+      selectedTags.every((tag) => memory.tags.includes(tag)),
     );
   }, [memories, selectedTags]);
 
@@ -67,7 +89,7 @@ export default function MemoriesScreen() {
 
   const handleRandomMemory = () => {
     if (filteredMemories.length === 0) {
-      Alert.alert('No Memories', 'Add some memories to use this feature!');
+      Alert.alert("No Memories", "Add some memories to use this feature!");
       return;
     }
 
@@ -76,18 +98,13 @@ export default function MemoriesScreen() {
 
     Alert.alert(
       randomMemory.title,
-      randomMemory.description || 'A special memory',
-      [{ text: 'OK' }]
+      randomMemory.description || "A special memory",
+      [{ text: "OK" }],
     );
   };
 
   const handleMemoryPress = (memory: WithId<Memory>) => {
-    // For now, just show an alert with the memory details
-    Alert.alert(
-      memory.title,
-      memory.description || 'No description',
-      [{ text: 'OK' }]
-    );
+    navigation.navigate("MemoryDetail", { memory });
   };
 
   const handleRefresh = async () => {
@@ -98,13 +115,68 @@ export default function MemoriesScreen() {
 
   const handleModalSuccess = () => {
     refresh(); // Reload memories after creating a new one
+    setPreselectedPhotos([]); // Clear preselected photos
+  };
+
+  const handleScanPhotos = async () => {
+    try {
+      setScanningPhotos(true);
+      setScanProgress({ current: 0, total: 0, status: "Starting scan..." });
+      setSuggestionsModalVisible(true);
+
+      // Scan the photo library for suggestions with progress tracking
+      const suggestions = await scanForMemorySuggestions(
+        100,
+        (current, total, status) => {
+          setScanProgress({ current, total, status });
+        },
+      );
+
+      setPhotoSuggestions(suggestions);
+
+      if (suggestions.length === 0) {
+        Alert.alert(
+          "No Suggestions",
+          "No photos found with people or golden retrievers. The scan looked through your recent photos.",
+          [{ text: "OK" }],
+        );
+      }
+    } catch (error) {
+      console.error("Error scanning photos:", error);
+      Alert.alert(
+        "Scan Error",
+        "Could not scan photos. Please check permissions and try again.",
+        [{ text: "OK" }],
+      );
+      setSuggestionsModalVisible(false);
+    } finally {
+      setScanningPhotos(false);
+      setScanProgress({ current: 0, total: 0, status: "" });
+    }
+  };
+
+  const handlePhotosSelected = (photoUris: string[]) => {
+    // Close suggestions modal and open add memory modal with preselected photos
+    setSuggestionsModalVisible(false);
+    setPreselectedPhotos(photoUris);
+    setModalVisible(true);
+  };
+
+  const handleCloseSuggestions = () => {
+    setSuggestionsModalVisible(false);
+    setPhotoSuggestions([]);
+  };
+
+  const handleCloseAddMemory = () => {
+    setModalVisible(false);
+    setPreselectedPhotos([]);
   };
 
   // Show loading state
   if (loading && memories.length === 0) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#D946A6" />
+        <ActivityIndicator size="large" color="#9370DB" />
         <Text style={styles.loadingText}>Loading memories...</Text>
       </View>
     );
@@ -144,15 +216,35 @@ export default function MemoriesScreen() {
     <View style={styles.container}>
       {/* Header Section */}
       <View style={styles.headerSection}>
-        {/* Random Memory Button */}
-        <TouchableOpacity
-          style={styles.randomButton}
-          onPress={handleRandomMemory}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.randomButtonIcon}>🎲</Text>
-          <Text style={styles.randomButtonText}>Random Memory</Text>
-        </TouchableOpacity>
+        {/* Action Buttons */}
+        <View style={styles.actionButtons}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={handleScanPhotos}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.actionButtonIcon}>🔍</Text>
+            <Text style={styles.actionButtonText}>Scan Photos</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={handleRandomMemory}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.actionButtonIcon}>🎲</Text>
+            <Text style={styles.actionButtonText}>Random Memory</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => setBatchUploadModalVisible(true)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.actionButtonIcon}>📤</Text>
+            <Text style={styles.actionButtonText}>Batch Import</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Tag Filters */}
         {allTags.length > 0 && (
@@ -176,7 +268,10 @@ export default function MemoriesScreen() {
                 return (
                   <TouchableOpacity
                     key={index}
-                    style={[styles.filterTag, isSelected && styles.filterTagSelected]}
+                    style={[
+                      styles.filterTag,
+                      isSelected && styles.filterTagSelected,
+                    ]}
                     onPress={() => handleTagPress(tag)}
                     activeOpacity={0.7}
                   >
@@ -218,8 +313,8 @@ export default function MemoriesScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={handleRefresh}
-              tintColor="#D946A6"
-              colors={['#D946A6']}
+              tintColor="#9370DB"
+              colors={["#9370DB"]}
             />
           }
         />
@@ -234,11 +329,35 @@ export default function MemoriesScreen() {
         <Text style={styles.fabIcon}>+</Text>
       </TouchableOpacity>
 
+      {/* Photo Suggestions Modal */}
+      <PhotoSuggestionsModal
+        visible={suggestionsModalVisible}
+        onClose={handleCloseSuggestions}
+        suggestions={photoSuggestions}
+        onSelectPhotos={handlePhotosSelected}
+        loading={scanningPhotos}
+        progress={scanProgress}
+      />
+
       {/* Add Memory Modal */}
       <AddMemoryModal
         visible={modalVisible}
-        onClose={() => setModalVisible(false)}
+        onClose={handleCloseAddMemory}
         onSuccess={handleModalSuccess}
+        coupleId={coupleId}
+        userId={currentUserId}
+        preselectedPhotoUris={preselectedPhotos}
+      />
+
+      {/* Batch Upload Modal */}
+      <BatchUploadModal
+        visible={batchUploadModalVisible}
+        onClose={() => setBatchUploadModalVisible(false)}
+        onSuccess={(count) => {
+          setBatchUploadModalVisible(false);
+          refresh();
+          Alert.alert('Success', `Created ${count} memories from your album!`);
+        }}
         coupleId={coupleId}
         userId={currentUserId}
       />
@@ -249,19 +368,19 @@ export default function MemoriesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF5F7',
+    backgroundColor: "#F5F3FF",
   },
   centerContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FFF5F7',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F5F3FF",
     paddingHorizontal: 32,
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#6B7280',
+    color: "#6B7280",
   },
   emptyIcon: {
     fontSize: 64,
@@ -269,72 +388,77 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#D946A6',
+    fontWeight: "bold",
+    color: "#9370DB",
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   emptySubtitle: {
     fontSize: 16,
-    color: '#6B7280',
-    textAlign: 'center',
+    color: "#6B7280",
+    textAlign: "center",
     marginBottom: 24,
   },
   emptyButton: {
-    backgroundColor: '#D946A6',
+    backgroundColor: "#9370DB",
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 24,
   },
   emptyButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   headerSection: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     paddingTop: 12,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: "#F3F4F6",
   },
-  randomButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FCE7F3',
+  actionButtons: {
+    flexDirection: "row",
+    gap: 12,
     marginHorizontal: 16,
     marginBottom: 12,
+  },
+  actionButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F0E6FF",
     paddingVertical: 12,
     borderRadius: 12,
-    gap: 8,
+    gap: 6,
   },
-  randomButtonIcon: {
-    fontSize: 20,
+  actionButtonIcon: {
+    fontSize: 18,
   },
-  randomButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#D946A6',
+  actionButtonText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#9370DB",
   },
   filtersSection: {
     paddingHorizontal: 16,
   },
   filtersHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 8,
   },
   filtersTitle: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#6B7280',
+    fontWeight: "600",
+    color: "#6B7280",
   },
   clearFiltersText: {
     fontSize: 14,
-    color: '#D946A6',
-    fontWeight: '600',
+    color: "#9370DB",
+    fontWeight: "600",
   },
   tagsScroll: {
     marginTop: 4,
@@ -343,47 +467,47 @@ const styles = StyleSheet.create({
     paddingRight: 16,
   },
   filterTag: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: "#F3F4F6",
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 16,
     marginRight: 8,
   },
   filterTagSelected: {
-    backgroundColor: '#D946A6',
+    backgroundColor: "#9370DB",
   },
   filterTagText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#6B7280',
+    fontWeight: "600",
+    color: "#6B7280",
   },
   filterTagTextSelected: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   listContent: {
     paddingVertical: 8,
     paddingBottom: 100, // Extra padding for FAB
   },
   fab: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 24,
     right: 24,
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#D946A6',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#9370DB",
+    justifyContent: "center",
+    alignItems: "center",
     elevation: 8,
-    shadowColor: '#D946A6',
+    shadowColor: "#9370DB",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
   },
   fabIcon: {
     fontSize: 32,
-    color: '#FFFFFF',
-    fontWeight: 'bold',
+    color: "#FFFFFF",
+    fontWeight: "bold",
     lineHeight: 32,
   },
 });

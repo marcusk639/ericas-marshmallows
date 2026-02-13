@@ -37,7 +37,7 @@ describe('MoodSelector', () => {
 
     const happyButton = getByTestId('mood-button-happy');
     expect(happyButton.props.style).toContainEqual(
-      expect.objectContaining({ borderColor: '#D946A6' })
+      expect.objectContaining({ borderColor: '#9370DB' })
     );
   });
 

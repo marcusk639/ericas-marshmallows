@@ -175,7 +175,7 @@ export const SendMarshmallowModal: React.FC<SendMarshmallowModalProps> = ({
 
       {loadingQuickPicks ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#D946A6" />
+          <ActivityIndicator size="large" color="#9370DB" />
           <Text style={styles.loadingText}>Loading quick picks...</Text>
         </View>
       ) : (
@@ -267,13 +267,13 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 16,
-    color: '#D946A6',
+    color: '#9370DB',
     fontWeight: '600',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#D946A6',
+    color: '#9370DB',
     marginBottom: 8,
     textAlign: 'center',
   },
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
   optionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF5F7',
+    backgroundColor: '#F5F3FF',
     padding: 20,
     borderRadius: 16,
     marginBottom: 12,
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   optionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#D946A6',
+    color: '#9370DB',
     marginBottom: 4,
   },
   optionDescription: {
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
   textInput: {
-    backgroundColor: '#FFF5F7',
+    backgroundColor: '#F5F3FF',
     borderRadius: 16,
     padding: 16,
     fontSize: 16,
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sendButton: {
-    backgroundColor: '#D946A6',
+    backgroundColor: '#9370DB',
     padding: 16,
     borderRadius: 16,
     alignItems: 'center',
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
   quickPickButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF5F7',
+    backgroundColor: '#F5F3FF',
     padding: 20,
     borderRadius: 16,
     marginBottom: 12,
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
   },
   quickPickText: {
     fontSize: 18,
-    color: '#D946A6',
+    color: '#9370DB',
     fontWeight: '600',
     flex: 1,
   },

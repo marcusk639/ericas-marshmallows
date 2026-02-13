@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#D946A6',
+    color: '#9370DB',
     textAlign: 'center',
   },
   picker: {
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   confirmButton: {
-    backgroundColor: '#D946A6',
+    backgroundColor: '#9370DB',
   },
   confirmButtonText: {
     color: '#FFFFFF',

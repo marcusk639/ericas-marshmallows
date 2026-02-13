@@ -175,6 +175,7 @@ describe('useMemories hooks', () => {
           'Beach Day',
           'Fun at the beach',
           ['file:///photo1.jpg'],
+          [],
           ['beach', 'summer'],
           new Date('2026-01-15')
         );
@@ -194,6 +195,7 @@ describe('useMemories hooks', () => {
         'Beach Day',
         'Fun at the beach',
         ['https://example.com/photo.jpg'],
+        [],
         ['beach', 'summer'],
         new Date('2026-01-15')
       );
@@ -212,6 +214,7 @@ describe('useMemories hooks', () => {
           'Just a note',
           [],
           [],
+          [],
           new Date()
         );
       });
@@ -223,6 +226,7 @@ describe('useMemories hooks', () => {
         'user123',
         'Quick Memory',
         'Just a note',
+        [],
         [],
         [],
         expect.any(Date)
@@ -252,6 +256,7 @@ describe('useMemories hooks', () => {
           '',
           ['file:///photo.jpg'],
           [],
+          [],
           new Date()
         );
       });
@@ -269,7 +274,7 @@ describe('useMemories hooks', () => {
       expect(result.current.creating).toBe(false);
 
       act(() => {
-        result.current.createMemory('Test', '', [], [], new Date());
+        result.current.createMemory('Test', '', [], [], [], new Date());
       });
 
       expect(result.current.creating).toBe(true);
@@ -289,7 +294,7 @@ describe('useMemories hooks', () => {
 
       await act(async () => {
         try {
-          await result.current.createMemory('Test', '', [], [], new Date());
+          await result.current.createMemory('Test', '', [], [], [], new Date());
         } catch (e) {
           // Expected to throw
         }
@@ -312,6 +317,7 @@ describe('useMemories hooks', () => {
             '',
             ['file:///photo.jpg'],
             [],
+            [],
             new Date()
           );
         } catch (e) {
@@ -328,7 +334,7 @@ describe('useMemories hooks', () => {
 
       await expect(async () => {
         await act(async () => {
-          await result.current.createMemory('Test', '', [], [], new Date());
+          await result.current.createMemory('Test', '', [], [], [], new Date());
         });
       }).rejects.toThrow('User must be signed in to create memory');
     });

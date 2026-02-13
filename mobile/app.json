@@ -21,7 +21,9 @@
         "ITSAppUsesNonExemptEncryption": false,
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
-        }
+        },
+        "NSPhotoLibraryUsageDescription": "We need access to your photo library to help you find photos of you, your partner, and your golden retriever for creating memories.",
+        "NSPhotoLibraryAddUsageDescription": "Allow $(PRODUCT_NAME) to save photos to your library."
       },
       "appleTeamId": "D8K3FS4HAX"
     },

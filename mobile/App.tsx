@@ -68,7 +68,7 @@ export default function App() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#D946A6" />
+        <ActivityIndicator size="large" color="#9370DB" />
         <Text style={styles.loadingText}>Loading...</Text>
       </View>
     );

@@ -96,6 +96,7 @@ describe('memories service', () => {
         title,
         description,
         photoUrls,
+        [],
         tags,
         date
       );
@@ -127,6 +128,7 @@ describe('memories service', () => {
         '',
         [],
         [],
+        [],
         new Date()
       );
 
@@ -145,7 +147,7 @@ describe('memories service', () => {
       (addDoc as jest.Mock).mockRejectedValue(new Error('Firestore error'));
 
       await expect(
-        createMemory('couple123', 'user123', 'Test', '', [], [], new Date())
+        createMemory('couple123', 'user123', 'Test', '', [], [], [], new Date())
       ).rejects.toThrow('Failed to create memory. Please try again.');
     });
   });
@@ -296,7 +298,9 @@ describe('memories service', () => {
         title: 'Beach Day',
         description: 'Fun at the beach',
         photoUrls: ['https://example.com/beach.jpg'],
+        videoUrls: [],
         devicePhotoUris: [],
+        deviceVideoUris: [],
         tags: ['beach', 'summer'],
         date: { seconds: 1234567890, nanoseconds: 0 },
         source: 'manual',

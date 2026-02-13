@@ -62,7 +62,9 @@ export interface Memory {
   title: string;
   description: string;
   photoUrls: string[];
+  videoUrls?: string[];
   devicePhotoUris: string[];
+  deviceVideoUris?: string[];
   tags: string[];
   date: FirestoreTimestamp;
   source: MemorySource;

@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { Video, ResizeMode } from 'expo-av';
+import { Ionicons } from '@expo/vector-icons';
 import type { Memory, WithId } from '../../../shared/types';
 import { getTimeAgo } from '../utils/timeUtils';
 
@@ -22,65 +24,66 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({ memory, onPress }) => {
     });
   };
 
-  // Render photo grid based on number of photos
-  const renderPhotoGrid = () => {
-    const photoCount = memory.photoUrls.length;
+  // Combine photos and videos into media items
+  const mediaItems = [
+    ...memory.photoUrls.map(url => ({ url, type: 'photo' as const })),
+    ...(memory.videoUrls || []).map(url => ({ url, type: 'video' as const })),
+  ];
 
-    if (photoCount === 0) {
+  // Render media item (photo or video)
+  const renderMediaItem = (url: string, type: 'photo' | 'video', style: any) => {
+    if (type === 'photo') {
+      return <Image source={{ uri: url }} style={style} resizeMode="cover" />;
+    }
+    return (
+      <View style={style}>
+        <Video
+          source={{ uri: url }}
+          style={style}
+          resizeMode={ResizeMode.COVER}
+          shouldPlay={false}
+          useNativeControls={false}
+        />
+        <View style={styles.videoOverlay}>
+          <Ionicons name="play-circle" size={32} color="rgba(255,255,255,0.9)" />
+        </View>
+      </View>
+    );
+  };
+
+  // Render media grid based on number of items
+  const renderMediaGrid = () => {
+    const mediaCount = mediaItems.length;
+
+    if (mediaCount === 0) {
       return null;
     }
 
-    if (photoCount === 1) {
-      return (
-        <Image
-          source={{ uri: memory.photoUrls[0] }}
-          style={styles.singlePhoto}
-          resizeMode="cover"
-        />
-      );
+    if (mediaCount === 1) {
+      return renderMediaItem(mediaItems[0].url, mediaItems[0].type, styles.singlePhoto);
     }
 
-    if (photoCount === 2) {
+    if (mediaCount === 2) {
       return (
         <View style={styles.twoPhotoGrid}>
-          <Image
-            source={{ uri: memory.photoUrls[0] }}
-            style={styles.halfPhoto}
-            resizeMode="cover"
-          />
-          <Image
-            source={{ uri: memory.photoUrls[1] }}
-            style={styles.halfPhoto}
-            resizeMode="cover"
-          />
+          {renderMediaItem(mediaItems[0].url, mediaItems[0].type, styles.halfPhoto)}
+          {renderMediaItem(mediaItems[1].url, mediaItems[1].type, styles.halfPhoto)}
         </View>
       );
     }
 
-    // For 3+ photos, show grid layout
+    // For 3+ media items, show grid layout
     return (
       <View style={styles.multiPhotoGrid}>
-        <Image
-          source={{ uri: memory.photoUrls[0] }}
-          style={styles.largePhoto}
-          resizeMode="cover"
-        />
+        {renderMediaItem(mediaItems[0].url, mediaItems[0].type, styles.largePhoto)}
         <View style={styles.smallPhotosColumn}>
-          <Image
-            source={{ uri: memory.photoUrls[1] }}
-            style={styles.smallPhoto}
-            resizeMode="cover"
-          />
-          {photoCount > 2 && (
+          {renderMediaItem(mediaItems[1].url, mediaItems[1].type, styles.smallPhoto)}
+          {mediaCount > 2 && (
             <View style={styles.smallPhotoWrapper}>
-              <Image
-                source={{ uri: memory.photoUrls[2] }}
-                style={styles.smallPhoto}
-                resizeMode="cover"
-              />
-              {photoCount > 3 && (
+              {renderMediaItem(mediaItems[2].url, mediaItems[2].type, styles.smallPhoto)}
+              {mediaCount > 3 && (
                 <View style={styles.morePhotosOverlay}>
-                  <Text style={styles.morePhotosText}>+{photoCount - 3}</Text>
+                  <Text style={styles.morePhotosText}>+{mediaCount - 3}</Text>
                 </View>
               )}
             </View>
@@ -96,9 +99,9 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({ memory, onPress }) => {
       activeOpacity={0.7}
       style={styles.container}
     >
-      {/* Photo Grid */}
-      {memory.photoUrls.length > 0 && (
-        <View style={styles.photoContainer}>{renderPhotoGrid()}</View>
+      {/* Media Grid */}
+      {mediaItems.length > 0 && (
+        <View style={styles.photoContainer}>{renderMediaGrid()}</View>
       )}
 
       {/* Content */}
@@ -183,6 +186,16 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
   },
+  videoOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+  },
   morePhotosOverlay: {
     position: 'absolute',
     top: 0,
@@ -220,13 +233,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   tag: {
-    backgroundColor: '#FCE7F3',
+    backgroundColor: '#F0E6FF',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
   },
   tagText: {
-    color: '#D946A6',
+    color: '#9370DB',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -238,7 +251,7 @@ const styles = StyleSheet.create({
   },
   date: {
     fontSize: 14,
-    color: '#D946A6',
+    color: '#9370DB',
     fontWeight: '600',
   },
   timestamp: {

@@ -66,7 +66,7 @@ export default function MarshmallowsScreen() {
   if (loading && marshmallows.length === 0) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#D946A6" />
+        <ActivityIndicator size="large" color="#9370DB" />
         <Text style={styles.loadingText}>Loading marshmallows...</Text>
       </View>
     );
@@ -150,7 +150,7 @@ export default function MarshmallowsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF5F7',
+    backgroundColor: '#F5F3FF',
   },
   listContent: {
     paddingVertical: 16,
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFF5F7',
+    backgroundColor: '#F5F3FF',
     paddingHorizontal: 32,
   },
   loadingText: {
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#D946A6',
+    color: '#9370DB',
     marginBottom: 8,
     textAlign: 'center',
   },
@@ -190,11 +190,11 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#D946A6',
+    backgroundColor: '#9370DB',
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 8,
-    shadowColor: '#D946A6',
+    shadowColor: '#9370DB',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

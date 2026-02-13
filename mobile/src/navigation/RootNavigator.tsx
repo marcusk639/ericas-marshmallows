@@ -5,7 +5,7 @@ import { RootTabParamList } from './types';
 import HomeScreen from '../screens/HomeScreen';
 import MarshmallowsScreen from '../screens/MarshmallowsScreen';
 import DailyCheckinScreen from '../screens/DailyCheckinScreen';
-import MemoriesScreen from '../screens/MemoriesScreen';
+import MemoriesStack from './MemoriesStack';
 import ProfileScreen from '../screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -14,10 +14,10 @@ export default function RootNavigator() {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: '#D946A6',
+        tabBarActiveTintColor: '#9370DB',
         tabBarInactiveTintColor: '#9CA3AF',
         headerStyle: {
-          backgroundColor: '#D946A6',
+          backgroundColor: '#9370DB',
         },
         headerTintColor: '#fff',
         headerTitleStyle: {
@@ -63,7 +63,7 @@ export default function RootNavigator() {
 
       <Tab.Screen
         name="Memories"
-        component={MemoriesScreen}
+        component={MemoriesStack}
         options={{
           title: 'Memories',
           tabBarLabel: 'Memories',

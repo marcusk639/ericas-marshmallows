@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF5F7',
+    backgroundColor: '#F5F3FF',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
   count: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#D946A6',
+    color: '#9370DB',
   },
   label: {
     fontSize: 14,

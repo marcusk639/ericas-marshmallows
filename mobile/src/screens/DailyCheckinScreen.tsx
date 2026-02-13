@@ -68,7 +68,7 @@ export default function DailyCheckinScreen() {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator testID="loading-indicator" size="large" color="#D946A6" />
+        <ActivityIndicator testID="loading-indicator" size="large" color="#9370DB" />
         <Text style={styles.loadingText}>Loading...</Text>
       </View>
     );
@@ -184,7 +184,7 @@ export default function DailyCheckinScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF5F7',
+    backgroundColor: '#F5F3FF',
   },
   contentContainer: {
     padding: 20,
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFF5F7',
+    backgroundColor: '#F5F3FF',
   },
   loadingText: {
     marginTop: 16,
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#D946A6',
+    color: '#9370DB',
     textAlign: 'center',
     marginBottom: 8,
   },
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   submitButton: {
-    backgroundColor: '#D946A6',
+    backgroundColor: '#9370DB',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   completionTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#D946A6',
+    color: '#9370DB',
   },
   completionSubtitle: {
     fontSize: 16,
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: '#FFF5F7',
+    backgroundColor: '#F5F3FF',
     padding: 16,
     borderRadius: 12,
   },
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   partnerMoodLabel: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#D946A6',
+    color: '#9370DB',
   },
   partnerGratitudeContainer: {
     marginTop: 8,

@@ -31,6 +31,7 @@ export const createMemory = async (
   title: string,
   description: string,
   photoUrls: string[],
+  videoUrls: string[] = [],
   tags: string[],
   date: Date
 ): Promise<string> => {
@@ -41,7 +42,9 @@ export const createMemory = async (
       title,
       description,
       photoUrls,
+      videoUrls,
       devicePhotoUris: [],
+      deviceVideoUris: [],
       tags,
       date: Timestamp.fromDate(date),
       source: 'manual' as const,
@@ -120,6 +123,59 @@ export const uploadMemoryPhoto = async (
 };
 
 /**
+ * Upload a video to Firebase Storage for a memory
+ */
+export const uploadMemoryVideo = async (
+  coupleId: string,
+  uri: string,
+  onProgress?: (progress: number) => void
+): Promise<string> => {
+  try {
+    console.log('Uploading video to storage...');
+
+    // Fetch the video
+    const response = await fetch(uri);
+    const blob = await response.blob();
+
+    // Create a unique filename
+    const filename = `${Date.now()}_${Math.random().toString(36).substring(7)}.mp4`;
+    const storageRef = ref(storage, `couples/${coupleId}/memories/${filename}`);
+
+    // Upload with progress tracking
+    return new Promise<string>((resolve, reject) => {
+      const uploadTask = uploadBytesResumable(storageRef, blob);
+
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          const progress = snapshot.bytesTransferred / snapshot.totalBytes;
+          if (onProgress) {
+            onProgress(progress);
+          }
+        },
+        (error) => {
+          console.error('Error uploading video:', error);
+          reject(new Error('Failed to upload video. Please try again.'));
+        },
+        async () => {
+          try {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            console.log('Video uploaded successfully:', downloadURL);
+            resolve(downloadURL);
+          } catch (error) {
+            console.error('Error getting download URL:', error);
+            reject(new Error('Failed to upload video. Please try again.'));
+          }
+        }
+      );
+    });
+  } catch (error) {
+    console.error('Error uploading video:', error);
+    throw new Error('Failed to upload video. Please try again.');
+  }
+};
+
+/**
  * Get all memories for a couple
  */
 export const getMemoriesByCouple = async (
@@ -145,7 +201,9 @@ export const getMemoriesByCouple = async (
         title: data.title,
         description: data.description,
         photoUrls: data.photoUrls || [],
+        videoUrls: data.videoUrls || [],
         devicePhotoUris: data.devicePhotoUris || [],
+        deviceVideoUris: data.deviceVideoUris || [],
         tags: data.tags || [],
         date: data.date
           ? {
@@ -197,7 +255,9 @@ export const getMemoriesByTag = async (
         title: data.title,
         description: data.description,
         photoUrls: data.photoUrls || [],
+        videoUrls: data.videoUrls || [],
         devicePhotoUris: data.devicePhotoUris || [],
+        deviceVideoUris: data.deviceVideoUris || [],
         tags: data.tags || [],
         date: data.date
           ? {
@@ -250,7 +310,9 @@ export const getRandomMemory = async (
         title: data.title,
         description: data.description,
         photoUrls: data.photoUrls || [],
+        videoUrls: data.videoUrls || [],
         devicePhotoUris: data.devicePhotoUris || [],
+        deviceVideoUris: data.deviceVideoUris || [],
         tags: data.tags || [],
         date: data.date
           ? {
@@ -295,11 +357,11 @@ export const updateMemory = async (
 };
 
 /**
- * Delete a memory and cleanup associated photos
+ * Delete a memory and cleanup associated photos and videos
  */
 export const deleteMemory = async (memoryId: string): Promise<void> => {
   try {
-    // First, get the memory to find photo URLs
+    // First, get the memory to find media URLs
     const memoryRef = doc(db, 'memories', memoryId);
     const q = query(collection(db, 'memories'), where('__name__', '==', memoryId));
     const snapshot = await getDocs(q);
@@ -310,23 +372,25 @@ export const deleteMemory = async (memoryId: string): Promise<void> => {
 
     const memoryData = snapshot.docs[0].data();
     const photoUrls = memoryData.photoUrls || [];
+    const videoUrls = memoryData.videoUrls || [];
+    const allMediaUrls = [...photoUrls, ...videoUrls];
 
-    // Delete photos from storage
-    for (const photoUrl of photoUrls) {
+    // Delete media from storage
+    for (const mediaUrl of allMediaUrls) {
       try {
         // Extract the storage path from the URL
-        if (photoUrl.includes('firebase')) {
-          const path = photoUrl.split('/o/')[1]?.split('?')[0];
+        if (mediaUrl.includes('firebase')) {
+          const path = mediaUrl.split('/o/')[1]?.split('?')[0];
           if (path) {
             const decodedPath = decodeURIComponent(path);
-            const photoRef = ref(storage, decodedPath);
-            await deleteObject(photoRef);
-            console.log('Deleted photo from storage:', decodedPath);
+            const mediaRef = ref(storage, decodedPath);
+            await deleteObject(mediaRef);
+            console.log('Deleted media from storage:', decodedPath);
           }
         }
-      } catch (photoError) {
-        console.error('Error deleting photo:', photoError);
-        // Continue with other photos even if one fails
+      } catch (mediaError) {
+        console.error('Error deleting media:', mediaError);
+        // Continue with other media even if one fails
       }
     }
 

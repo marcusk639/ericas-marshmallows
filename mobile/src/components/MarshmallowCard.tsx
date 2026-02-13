@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   sentBubble: {
-    backgroundColor: '#D946A6',
+    backgroundColor: '#9370DB',
     borderBottomRightRadius: 4,
   },
   receivedBubble: {
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
   },
   unreadBadge: {
-    backgroundColor: '#D946A6',
+    backgroundColor: '#9370DB',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,

@@ -271,7 +271,7 @@ export default function HomeScreen() {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#D946A6" />
+        <ActivityIndicator size="large" color="#9370DB" />
         <Text style={styles.loadingText}>Loading...</Text>
       </View>
     );
@@ -281,7 +281,7 @@ export default function HomeScreen() {
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#D946A6']} />}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#9370DB']} />}
     >
       {/* Greeting Section */}
       <View style={styles.greetingSection}>
@@ -359,7 +359,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF5F7',
+    backgroundColor: '#F5F3FF',
   },
   contentContainer: {
     padding: 20,
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFF5F7',
+    backgroundColor: '#F5F3FF',
   },
   loadingText: {
     marginTop: 16,
@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
   },
   subGreeting: {
     fontSize: 16,
-    color: '#D946A6',
+    color: '#9370DB',
     fontWeight: '500',
   },
   summarySection: {
@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
   summaryCard: {
     flex: 1,
     minWidth: '45%',
-    backgroundColor: '#FFF5F7',
+    backgroundColor: '#F5F3FF',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -453,7 +453,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FCE7F3',
+    backgroundColor: '#F0E6FF',
     justifyContent: 'center',
     alignItems: 'center',
   },

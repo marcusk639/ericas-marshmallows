@@ -221,7 +221,7 @@ export const LoginScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFF5F7",
+    backgroundColor: "#F5F3FF",
   },
   keyboardView: {
     flex: 1,
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#D946A6",
+    color: "#9370DB",
     marginBottom: 8,
     textAlign: "center",
   },
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   toggleButtonActive: {
-    backgroundColor: "#D946A6",
+    backgroundColor: "#9370DB",
   },
   toggleText: {
     fontSize: 16,
@@ -292,12 +292,12 @@ const styles = StyleSheet.create({
     borderColor: "#FED7E2",
   },
   authButton: {
-    backgroundColor: "#D946A6",
+    backgroundColor: "#9370DB",
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: "center",
     marginTop: 8,
-    shadowColor: "#D946A6",
+    shadowColor: "#9370DB",
     shadowOffset: {
       width: 0,
       height: 4,

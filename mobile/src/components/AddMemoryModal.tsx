@@ -13,7 +13,14 @@ import {
   Platform,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { Video, ResizeMode } from 'expo-av';
+import { Ionicons } from '@expo/vector-icons';
 import { useCreateMemory } from '../hooks/useMemories';
+
+export interface MediaItem {
+  uri: string;
+  type: 'photo' | 'video';
+}
 
 interface AddMemoryModalProps {
   visible: boolean;
@@ -21,6 +28,7 @@ interface AddMemoryModalProps {
   onSuccess: () => void;
   coupleId: string | null;
   userId: string | null;
+  preselectedPhotoUris?: string[];
 }
 
 export const AddMemoryModal: React.FC<AddMemoryModalProps> = ({
@@ -29,15 +37,23 @@ export const AddMemoryModal: React.FC<AddMemoryModalProps> = ({
   onSuccess,
   coupleId,
   userId,
+  preselectedPhotoUris = [],
 }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>([]);
-  const [photoUris, setPhotoUris] = useState<string[]>([]);
+  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [date, setDate] = useState(new Date());
 
   const { createMemory, creating, uploadProgress } = useCreateMemory(coupleId, userId);
+
+  // Set preselected photos when they're provided
+  React.useEffect(() => {
+    if (preselectedPhotoUris.length > 0) {
+      setMediaItems(preselectedPhotoUris.map(uri => ({ uri, type: 'photo' as const })));
+    }
+  }, [preselectedPhotoUris]);
 
   const requestPermission = async () => {
     if (Platform.OS !== 'web') {
@@ -53,25 +69,29 @@ export const AddMemoryModal: React.FC<AddMemoryModalProps> = ({
     return true;
   };
 
-  const handlePickImages = async () => {
+  const handlePickMedia = async () => {
     const hasPermission = await requestPermission();
     if (!hasPermission) return;
 
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
+        mediaTypes: ['images', 'videos'],
         allowsMultipleSelection: true,
         quality: 0.8,
-        selectionLimit: 5 - photoUris.length, // Limit total to 5 photos
+        selectionLimit: 5 - mediaItems.length, // Limit total to 5 items
+        videoMaxDuration: 60, // Limit videos to 60 seconds
       });
 
       if (!result.canceled && result.assets) {
-        const newUris = result.assets.map((asset) => asset.uri);
-        setPhotoUris([...photoUris, ...newUris]);
+        const newItems: MediaItem[] = result.assets.map((asset) => ({
+          uri: asset.uri,
+          type: asset.type === 'video' ? 'video' : 'photo',
+        }));
+        setMediaItems([...mediaItems, ...newItems]);
       }
     } catch (error) {
-      console.error('Error picking images:', error);
-      Alert.alert('Error', 'Failed to pick images. Please try again.');
+      console.error('Error picking media:', error);
+      Alert.alert('Error', 'Failed to pick media. Please try again.');
     }
   };
 
@@ -89,14 +109,19 @@ export const AddMemoryModal: React.FC<AddMemoryModalProps> = ({
 
     try {
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ['images'],
+        mediaTypes: ['images', 'videos'],
         quality: 0.8,
         allowsEditing: true,
         aspect: [4, 3],
+        videoMaxDuration: 60,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        setPhotoUris([...photoUris, result.assets[0].uri]);
+        const asset = result.assets[0];
+        setMediaItems([...mediaItems, {
+          uri: asset.uri,
+          type: asset.type === 'video' ? 'video' : 'photo',
+        }]);
       }
     } catch (error) {
       console.error('Error taking photo:', error);
@@ -104,18 +129,18 @@ export const AddMemoryModal: React.FC<AddMemoryModalProps> = ({
     }
   };
 
-  const handleAddPhotoOptions = () => {
+  const handleAddMediaOptions = () => {
     Alert.alert(
-      'Add Photo',
-      'Choose where to add photos from',
+      'Add Photo/Video',
+      'Choose where to add media from',
       [
         {
-          text: 'Take Photo',
+          text: 'Take Photo/Video',
           onPress: handleTakePhoto,
         },
         {
           text: 'Choose from Library',
-          onPress: handlePickImages,
+          onPress: handlePickMedia,
         },
         {
           text: 'Cancel',
@@ -126,8 +151,8 @@ export const AddMemoryModal: React.FC<AddMemoryModalProps> = ({
     );
   };
 
-  const handleRemovePhoto = (index: number) => {
-    setPhotoUris(photoUris.filter((_, i) => i !== index));
+  const handleRemoveMedia = (index: number) => {
+    setMediaItems(mediaItems.filter((_, i) => i !== index));
   };
 
   const handleAddTag = () => {
@@ -148,20 +173,23 @@ export const AddMemoryModal: React.FC<AddMemoryModalProps> = ({
       return;
     }
 
-    if (photoUris.length === 0) {
-      Alert.alert('No Photos', 'Please add at least one photo to this memory.');
+    if (mediaItems.length === 0) {
+      Alert.alert('No Media', 'Please add at least one photo or video to this memory.');
       return;
     }
 
     try {
-      await createMemory(title.trim(), description.trim(), photoUris, tags, date);
+      const photoUris = mediaItems.filter(item => item.type === 'photo').map(item => item.uri);
+      const videoUris = mediaItems.filter(item => item.type === 'video').map(item => item.uri);
+
+      await createMemory(title.trim(), description.trim(), photoUris, videoUris, tags, date);
 
       // Reset form
       setTitle('');
       setDescription('');
       setTagInput('');
       setTags([]);
-      setPhotoUris([]);
+      setMediaItems([]);
       setDate(new Date());
 
       onSuccess();
@@ -180,7 +208,7 @@ export const AddMemoryModal: React.FC<AddMemoryModalProps> = ({
     setDescription('');
     setTagInput('');
     setTags([]);
-    setPhotoUris([]);
+    setMediaItems([]);
     setDate(new Date());
 
     onClose();
@@ -215,34 +243,49 @@ export const AddMemoryModal: React.FC<AddMemoryModalProps> = ({
         </View>
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {/* Photos Section */}
+          {/* Media Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Photos</Text>
+            <Text style={styles.sectionTitle}>Photos & Videos</Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
               style={styles.photosScroll}
             >
-              {photoUris.map((uri, index) => (
+              {mediaItems.map((item, index) => (
                 <View key={index} style={styles.photoWrapper}>
-                  <Image source={{ uri }} style={styles.photo} />
+                  {item.type === 'photo' ? (
+                    <Image source={{ uri: item.uri }} style={styles.photo} />
+                  ) : (
+                    <View style={styles.videoContainer}>
+                      <Video
+                        source={{ uri: item.uri }}
+                        style={styles.photo}
+                        resizeMode={ResizeMode.COVER}
+                        shouldPlay={false}
+                        useNativeControls={false}
+                      />
+                      <View style={styles.videoOverlay}>
+                        <Ionicons name="play-circle" size={40} color="rgba(255,255,255,0.9)" />
+                      </View>
+                    </View>
+                  )}
                   <TouchableOpacity
                     style={styles.removePhotoButton}
-                    onPress={() => handleRemovePhoto(index)}
+                    onPress={() => handleRemoveMedia(index)}
                     disabled={creating}
                   >
                     <Text style={styles.removePhotoText}>✕</Text>
                   </TouchableOpacity>
                 </View>
               ))}
-              {photoUris.length < 5 && (
+              {mediaItems.length < 5 && (
                 <TouchableOpacity
                   style={styles.addPhotoButton}
-                  onPress={handleAddPhotoOptions}
+                  onPress={handleAddMediaOptions}
                   disabled={creating}
                 >
                   <Text style={styles.addPhotoIcon}>+</Text>
-                  <Text style={styles.addPhotoText}>Add Photo</Text>
+                  <Text style={styles.addPhotoText}>Add Media</Text>
                 </TouchableOpacity>
               )}
             </ScrollView>
@@ -333,7 +376,7 @@ export const AddMemoryModal: React.FC<AddMemoryModalProps> = ({
         {/* Upload Progress */}
         {creating && (
           <View style={styles.uploadProgress}>
-            <ActivityIndicator size="small" color="#D946A6" />
+            <ActivityIndicator size="small" color="#9370DB" />
             <Text style={styles.uploadProgressText}>
               Uploading... {Math.round(uploadProgress * 100)}%
             </Text>
@@ -352,7 +395,7 @@ export const AddMemoryModal: React.FC<AddMemoryModalProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF5F7',
+    backgroundColor: '#F5F3FF',
   },
   header: {
     flexDirection: 'row',
@@ -376,7 +419,7 @@ const styles = StyleSheet.create({
   saveButton: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#D946A6',
+    color: '#9370DB',
   },
   disabledButton: {
     opacity: 0.4,
@@ -422,25 +465,39 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
   },
+  videoContainer: {
+    position: 'relative',
+  },
+  videoOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    borderRadius: 12,
+  },
   addPhotoButton: {
     width: 120,
     height: 120,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#D946A6',
+    borderColor: '#9370DB',
     borderStyle: 'dashed',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FCE7F3',
+    backgroundColor: '#F0E6FF',
   },
   addPhotoIcon: {
     fontSize: 32,
-    color: '#D946A6',
+    color: '#9370DB',
     marginBottom: 4,
   },
   addPhotoText: {
     fontSize: 12,
-    color: '#D946A6',
+    color: '#9370DB',
     fontWeight: '600',
   },
   input: {
@@ -473,7 +530,7 @@ const styles = StyleSheet.create({
     color: '#1F2937',
   },
   addTagButton: {
-    backgroundColor: '#D946A6',
+    backgroundColor: '#9370DB',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 12,
@@ -493,7 +550,7 @@ const styles = StyleSheet.create({
   tag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FCE7F3',
+    backgroundColor: '#F0E6FF',
     paddingLeft: 12,
     paddingRight: 8,
     paddingVertical: 6,
@@ -501,12 +558,12 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   tagText: {
-    color: '#D946A6',
+    color: '#9370DB',
     fontSize: 14,
     fontWeight: '600',
   },
   removeTagText: {
-    color: '#D946A6',
+    color: '#9370DB',
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -536,7 +593,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#D946A6',
+    backgroundColor: '#9370DB',
     borderRadius: 2,
   },
 });

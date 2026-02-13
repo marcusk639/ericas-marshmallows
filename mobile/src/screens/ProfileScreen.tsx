@@ -213,7 +213,7 @@ export default function ProfileScreen() {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#D946A6" />
+        <ActivityIndicator size="large" color="#9370DB" />
         <Text style={styles.loadingText}>Loading profile...</Text>
       </View>
     );
@@ -333,7 +333,7 @@ export default function ProfileScreen() {
               handleSaveSettings();
             }}
             trackColor={{ false: '#E5E7EB', true: '#FBCFE8' }}
-            thumbColor={wifiOnly ? '#D946A6' : '#9CA3AF'}
+            thumbColor={wifiOnly ? '#9370DB' : '#9CA3AF'}
           />
         </View>
       </View>
@@ -380,7 +380,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF5F7',
+    backgroundColor: '#F5F3FF',
   },
   contentContainer: {
     padding: 20,
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFF5F7',
+    backgroundColor: '#F5F3FF',
   },
   loadingText: {
     marginTop: 16,
@@ -425,7 +425,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   profilePhotoPlaceholder: {
-    backgroundColor: '#D946A6',
+    backgroundColor: '#9370DB',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -437,7 +437,7 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#D946A6',
+    color: '#9370DB',
   },
   userEmail: {
     fontSize: 16,
@@ -471,7 +471,7 @@ const styles = StyleSheet.create({
   },
   connectionStatus: {
     fontSize: 14,
-    color: '#D946A6',
+    color: '#9370DB',
     fontWeight: '500',
   },
 
@@ -484,7 +484,7 @@ const styles = StyleSheet.create({
   statCard: {
     flex: 1,
     minWidth: '45%',
-    backgroundColor: '#FFF5F7',
+    backgroundColor: '#F5F3FF',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#D946A6',
+    color: '#9370DB',
   },
   statLabel: {
     fontSize: 12,
@@ -526,7 +526,7 @@ const styles = StyleSheet.create({
   timeValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#D946A6',
+    color: '#9370DB',
   },
 
   // Actions Section
