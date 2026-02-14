@@ -4,13 +4,19 @@
   "description": "Utility scripts for Erica's Marshmallows",
   "private": true,
   "scripts": {
-    "upload-photos": "ts-node upload-local-photos.ts"
+    "upload-photos": "ts-node upload-local-photos.ts",
+    "fix-booleans": "ts-node fix-boolean-types.ts",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@react-navigation/stack": "^7.7.1",
     "firebase-admin": "^13.1.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "expo": "~54.0.33",
+    "react": "19.1.0",
+    "react-native": "0.81.5"
   },
   "devDependencies": {
     "@types/node": "^22.13.5"
