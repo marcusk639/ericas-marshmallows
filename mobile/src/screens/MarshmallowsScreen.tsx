@@ -146,7 +146,6 @@ export default function MarshmallowsScreen() {
           );
         }}
         contentContainerStyle={styles.listContent}
-        inverted
         showsVerticalScrollIndicator={false}
       />
 
@@ -180,6 +179,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingVertical: 16,
+    flexGrow: 1,
   },
   centerContainer: {
     flex: 1,
