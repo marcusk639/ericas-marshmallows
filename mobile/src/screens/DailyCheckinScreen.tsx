@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,9 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
 } from 'react-native';
 import { useDailyCheckin, useCreateCheckin, useCheckinStreak } from '../hooks/useDailyCheckin';
 import { getCurrentUser, getUserProfile } from '../services/auth';
@@ -20,6 +23,7 @@ export default function DailyCheckinScreen() {
   const [coupleId, setCoupleId] = useState<string | null>(null);
   const [selectedMood, setSelectedMood] = useState<MoodType | null>(null);
   const [gratitude, setGratitude] = useState('');
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const { myCheckin, partnerCheckin, loading, refresh } = useDailyCheckin(
     currentUserId,
@@ -42,6 +46,22 @@ export default function DailyCheckinScreen() {
     };
 
     loadUserData();
+  }, []);
+
+  // Scroll to bottom when keyboard shows
+  useEffect(() => {
+    const keyboardWillShow = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => {
+        setTimeout(() => {
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      }
+    );
+
+    return () => {
+      keyboardWillShow.remove();
+    };
   }, []);
 
   const handleSubmit = async () => {
@@ -141,43 +161,54 @@ export default function DailyCheckinScreen() {
 
   // Show check-in form
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      {/* Header with streak */}
-      <View style={styles.header}>
-        <StreakBadge streak={streak} />
-      </View>
-
-      {/* Title */}
-      <Text style={styles.title}>How are you feeling today?</Text>
-
-      {/* Mood selector */}
-      <MoodSelector selectedMood={selectedMood} onSelect={setSelectedMood} />
-
-      {/* Gratitude input */}
-      {selectedMood && (
-        <View style={styles.gratitudeSection}>
-          <Text style={styles.sectionTitle}>Share your gratitude</Text>
-          <GratitudeInput value={gratitude} onChange={setGratitude} />
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+    >
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Header with streak */}
+        <View style={styles.header}>
+          <StreakBadge streak={streak} />
         </View>
-      )}
 
-      {/* Submit button */}
-      {selectedMood && (
-        <TouchableOpacity
-          testID="submit-button"
-          style={[styles.submitButton, isSubmitDisabled && styles.submitButtonDisabled]}
-          onPress={handleSubmit}
-          disabled={isSubmitDisabled}
-          activeOpacity={0.8}
-        >
-          {creating ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <Text style={styles.submitButtonText}>Submit Check-In</Text>
-          )}
-        </TouchableOpacity>
-      )}
-    </ScrollView>
+        {/* Title */}
+        <Text style={styles.title}>How are you feeling today?</Text>
+
+        {/* Mood selector */}
+        <MoodSelector selectedMood={selectedMood} onSelect={setSelectedMood} />
+
+        {/* Gratitude input */}
+        {selectedMood && (
+          <View style={styles.gratitudeSection}>
+            <Text style={styles.sectionTitle}>Share your gratitude</Text>
+            <GratitudeInput value={gratitude} onChange={setGratitude} />
+          </View>
+        )}
+
+        {/* Submit button */}
+        {selectedMood && (
+          <TouchableOpacity
+            testID="submit-button"
+            style={[styles.submitButton, isSubmitDisabled && styles.submitButtonDisabled]}
+            onPress={handleSubmit}
+            disabled={isSubmitDisabled}
+            activeOpacity={0.8}
+          >
+            {creating ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.submitButtonText}>Submit Check-In</Text>
+            )}
+          </TouchableOpacity>
+        )}
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -188,6 +219,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: 20,
+    paddingBottom: 400, // Extra padding for keyboard
     gap: 24,
   },
   centerContainer: {

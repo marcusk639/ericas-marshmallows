@@ -124,7 +124,7 @@ export async function analyzePhotoWithClaude(
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251201', // Haiku 4.5: Better accuracy, still very cost-efficient
+        model: 'claude-haiku-4-5-20251001', // Haiku 4.5: Better accuracy, still very cost-efficient
         max_tokens: 200, // Reduced from 300 (we only need JSON output)
         messages: [
           {
@@ -166,7 +166,10 @@ Criteria:
     }
 
     const data = await response.json();
-    const content = data.content[0].text;
+    let content = data.content[0].text;
+
+    // Strip markdown code blocks if present (```json ... ``` or ``` ... ```)
+    content = content.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
 
     // Parse the JSON response
     const result = JSON.parse(content) as PhotoAnalysisResult;

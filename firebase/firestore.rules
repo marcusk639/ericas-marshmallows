@@ -65,9 +65,9 @@ service cloud.firestore {
         isAuthorizedEmail() &&
         request.resource.data.senderId == request.auth.uid;
 
-      // Allow sender to update their own marshmallow (before it's read)
-      allow update: if isCoupleMember(resource.data.coupleId) &&
-        resource.data.senderId == request.auth.uid;
+      // Allow sender or recipient to update marshmallow (sender to edit, recipient to mark as read)
+      allow update: if isCoupleMember(resource.data.coupleId) && isAuthorizedEmail() &&
+        (resource.data.senderId == request.auth.uid || resource.data.recipientId == request.auth.uid);
     }
 
     // Memories collection rules

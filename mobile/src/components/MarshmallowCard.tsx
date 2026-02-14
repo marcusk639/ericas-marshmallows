@@ -17,13 +17,6 @@ export const MarshmallowCard: React.FC<MarshmallowCardProps> = ({
   const isSent = marshmallow.senderId === currentUserId;
   const showUnreadBadge = !isSent && !marshmallow.read;
 
-  console.log('MarshmallowCard: Rendering card for:', {
-    id: marshmallow.id,
-    message: marshmallow.message.substring(0, 20),
-    isSent,
-    currentUserId,
-  });
-
   return (
     <TouchableOpacity
       onPress={() => onPress(marshmallow)}

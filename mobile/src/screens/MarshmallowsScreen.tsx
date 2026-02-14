@@ -26,14 +26,11 @@ export default function MarshmallowsScreen() {
   // Get current user and their coupleId
   useEffect(() => {
     const loadUserData = async () => {
-      console.log('MarshmallowsScreen: Loading user data...');
       const user = getCurrentUser();
       if (user) {
-        console.log('MarshmallowsScreen: Current user ID:', user.uid);
         setCurrentUserId(user.uid);
         const profile = await getUserProfile(user.uid);
         if (profile) {
-          console.log('MarshmallowsScreen: User profile loaded, coupleId:', profile.coupleId);
           setCoupleId(profile.coupleId);
 
           // Get partner's ID from couple document
@@ -44,23 +41,14 @@ export default function MarshmallowsScreen() {
             if (coupleDoc.exists()) {
               const coupleData = coupleDoc.data() as Couple;
               const partnerId = coupleData.memberIds.find(id => id !== user.uid);
-              console.log('MarshmallowsScreen: Partner ID found:', partnerId);
               if (partnerId && partnerId !== '') {
                 setRecipientId(partnerId);
-              } else {
-                console.log('MarshmallowsScreen: No valid partner ID found');
               }
-            } else {
-              console.log('MarshmallowsScreen: Couple document does not exist');
             }
           } catch (error) {
-            console.error('MarshmallowsScreen: Error getting partner ID:', error);
+            console.error('Error getting partner ID:', error);
           }
-        } else {
-          console.log('MarshmallowsScreen: No user profile found');
         }
-      } else {
-        console.log('MarshmallowsScreen: No current user');
       }
     };
 
@@ -73,15 +61,6 @@ export default function MarshmallowsScreen() {
       await markAsRead(marshmallow.id);
     }
   };
-
-  // Debug: Log render state
-  console.log('MarshmallowsScreen: Rendering with state:', {
-    loading,
-    marshmallowsCount: marshmallows.length,
-    coupleId,
-    currentUserId,
-    recipientId,
-  });
 
   // Show loading state
   if (loading && marshmallows.length === 0) {
@@ -128,23 +107,18 @@ export default function MarshmallowsScreen() {
     );
   }
 
-  console.log('MarshmallowsScreen: Rendering FlatList with marshmallows:', marshmallows);
-
   return (
     <View style={styles.container}>
       <FlatList
         data={marshmallows}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => {
-          console.log('MarshmallowsScreen: Rendering marshmallow card:', item.id);
-          return (
-            <MarshmallowCard
-              marshmallow={item}
-              currentUserId={currentUserId || ''}
-              onPress={handleMarshmallowPress}
-            />
-          );
-        }}
+        renderItem={({ item }) => (
+          <MarshmallowCard
+            marshmallow={item}
+            currentUserId={currentUserId || ''}
+            onPress={handleMarshmallowPress}
+          />
+        )}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />

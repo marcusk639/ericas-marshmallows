@@ -10,6 +10,7 @@ import {
   RefreshControl,
   Alert,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useMemories, useMemoryTags } from "../hooks/useMemories";
 import { MemoryCard } from "../components/MemoryCard";
 import { AddMemoryModal } from "../components/AddMemoryModal";
@@ -96,11 +97,8 @@ export default function MemoriesScreen({ navigation }: MemoriesScreenProps) {
     const randomIndex = Math.floor(Math.random() * filteredMemories.length);
     const randomMemory = filteredMemories[randomIndex];
 
-    Alert.alert(
-      randomMemory.title,
-      randomMemory.description || "A special memory",
-      [{ text: "OK" }],
-    );
+    // Navigate to the random memory detail screen
+    navigation.navigate("MemoryDetail", { memory: randomMemory });
   };
 
   const handleMemoryPress = (memory: WithId<Memory>) => {
@@ -223,7 +221,7 @@ export default function MemoriesScreen({ navigation }: MemoriesScreenProps) {
             onPress={handleScanPhotos}
             activeOpacity={0.7}
           >
-            <Text style={styles.actionButtonIcon}>🔍</Text>
+            <Ionicons name="search" size={24} color="#9370DB" />
             <Text style={styles.actionButtonText}>Scan Photos</Text>
           </TouchableOpacity>
 
@@ -232,7 +230,7 @@ export default function MemoriesScreen({ navigation }: MemoriesScreenProps) {
             onPress={handleRandomMemory}
             activeOpacity={0.7}
           >
-            <Text style={styles.actionButtonIcon}>🎲</Text>
+            <Ionicons name="shuffle" size={24} color="#9370DB" />
             <Text style={styles.actionButtonText}>Random Memory</Text>
           </TouchableOpacity>
 
@@ -241,7 +239,7 @@ export default function MemoriesScreen({ navigation }: MemoriesScreenProps) {
             onPress={() => setBatchUploadModalVisible(true)}
             activeOpacity={0.7}
           >
-            <Text style={styles.actionButtonIcon}>📤</Text>
+            <Ionicons name="cloud-upload" size={24} color="#9370DB" />
             <Text style={styles.actionButtonText}>Batch Import</Text>
           </TouchableOpacity>
         </View>
@@ -425,21 +423,20 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
-    flexDirection: "row",
+    flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#F0E6FF",
-    paddingVertical: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 8,
     borderRadius: 12,
     gap: 6,
   },
-  actionButtonIcon: {
-    fontSize: 18,
-  },
   actionButtonText: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: "600",
     color: "#9370DB",
+    textAlign: "center",
   },
   filtersSection: {
     paddingHorizontal: 16,

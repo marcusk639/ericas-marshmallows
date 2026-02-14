@@ -28,15 +28,6 @@ export const sendMarshmallow = async (
     quickPickId?: string;
   }
 ): Promise<string> => {
-  console.log('sendMarshmallow called with:', {
-    coupleId,
-    senderId,
-    recipientId,
-    message: message.substring(0, 50),
-    type,
-    options,
-  });
-
   try {
     const marshmallowData: any = {
       coupleId,
@@ -56,17 +47,11 @@ export const sendMarshmallow = async (
       marshmallowData.quickPickId = options.quickPickId;
     }
 
-    console.log('Attempting to add marshmallow document...');
     const docRef = await addDoc(collection(db, 'marshmallows'), marshmallowData);
-    console.log('✅ Successfully sent marshmallow:', docRef.id);
+    console.log('Successfully sent marshmallow:', docRef.id);
     return docRef.id;
   } catch (error) {
-    console.error('❌ Error sending marshmallow:', error);
-    console.error('Error details:', {
-      name: error instanceof Error ? error.name : 'Unknown',
-      message: error instanceof Error ? error.message : String(error),
-      code: (error as any)?.code,
-    });
+    console.error('Error sending marshmallow:', error);
     throw new Error('Failed to send marshmallow. Please try again.');
   }
 };
@@ -80,8 +65,6 @@ export const subscribeToCoupleMarshmallows = (
   callback: (marshmallows: WithId<Marshmallow>[]) => void,
   onError?: (error: Error) => void
 ): Unsubscribe => {
-  console.log('subscribeToCoupleMarshmallows: Setting up subscription for coupleId:', coupleId);
-
   try {
     const q = query(
       collection(db, 'marshmallows'),
@@ -92,7 +75,6 @@ export const subscribeToCoupleMarshmallows = (
     return onSnapshot(
       q,
       (snapshot) => {
-        console.log('subscribeToCoupleMarshmallows: Snapshot received, doc count:', snapshot.docs.length);
         const marshmallows: WithId<Marshmallow>[] = snapshot.docs.map((doc) => {
           const data = doc.data();
           return {
@@ -113,7 +95,6 @@ export const subscribeToCoupleMarshmallows = (
             read: Boolean(data.read),
           };
         });
-        console.log('subscribeToCoupleMarshmallows: Calling callback with marshmallows:', marshmallows.length);
         callback(marshmallows);
       },
       (error) => {

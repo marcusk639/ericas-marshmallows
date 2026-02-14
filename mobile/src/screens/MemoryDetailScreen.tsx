@@ -41,6 +41,12 @@ export default function MemoryDetailScreen({
     ...(memory.videoUrls || []).map((url) => ({ url, type: "video" as const })),
   ];
 
+  // Debug logging
+  console.log('MemoryDetailScreen - Memory ID:', memory.id);
+  console.log('MemoryDetailScreen - Photo URLs:', memory.photoUrls);
+  console.log('MemoryDetailScreen - Video URLs:', memory.videoUrls);
+  console.log('MemoryDetailScreen - Media items count:', mediaItems.length);
+
   const renderMediaItem = (url: string, type: "photo" | "video") => {
     if (type === "photo") {
       return (
@@ -49,7 +55,13 @@ export default function MemoryDetailScreen({
           onPress={() => setFullscreenMedia({ url, type: "photo" })}
           activeOpacity={0.9}
         >
-          <Image source={{ uri: url }} style={styles.mediaItem} resizeMode="cover" />
+          <Image
+            source={{ uri: url }}
+            style={styles.mediaItem}
+            resizeMode="cover"
+            onError={(error) => console.error('Image load error:', url, error)}
+            onLoad={() => console.log('Image loaded successfully:', url)}
+          />
         </TouchableOpacity>
       );
     }

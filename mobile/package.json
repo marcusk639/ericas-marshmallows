@@ -1,15 +1,19 @@
 {
   "name": "mobile",
   "version": "1.0.0",
-  "main": "index.ts",
+  "main": "index.js",
   "scripts": {
     "start": "expo start",
+    "start:clean": "expo start -c",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "simulator:restart": "xcrun simctl shutdown all && xcrun simctl boot 'iPhone 15'",
+    "simulator:reset": "xcrun simctl shutdown all && xcrun simctl erase all && xcrun simctl boot 'iPhone 15'",
+    "dev": "npm run simulator:restart && npm run start:clean"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -23,6 +27,7 @@
     "expo-crypto": "^15.0.8",
     "expo-dev-client": "^6.0.20",
     "expo-device": "^8.0.10",
+    "expo-image": "~3.0.11",
     "expo-image-manipulator": "^14.0.8",
     "expo-image-picker": "^17.0.10",
     "expo-media-library": "^18.2.1",

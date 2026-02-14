@@ -6,6 +6,12 @@
       }
     },
     "owner": "marcusk639",
-    "slug": "ericas-marshallows"
+    "slug": "ericas-marshallows",
+    "ios": {
+      "bundleIdentifier": "com.ericasmarshmallows.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    }
   }
 }

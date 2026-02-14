@@ -23,37 +23,28 @@ export const useMarshmallows = (coupleId: string | null): UseMarshmallowsResult 
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    console.log('useMarshmallows: coupleId changed to:', coupleId);
-
     if (!coupleId) {
-      console.log('useMarshmallows: No coupleId, clearing marshmallows');
       setMarshmallows([]);
       setLoading(false);
       return;
     }
 
-    console.log('useMarshmallows: Setting up subscription for coupleId:', coupleId);
     setLoading(true);
     setError(null);
 
     const unsubscribe = subscribeToCoupleMarshmallows(
       coupleId,
       (newMarshmallows) => {
-        console.log('useMarshmallows: Received marshmallows update:', newMarshmallows.length);
-        console.log('useMarshmallows: Marshmallow data:', JSON.stringify(newMarshmallows, null, 2));
         setMarshmallows(newMarshmallows);
-        console.log('useMarshmallows: State updated, calling setLoading(false)');
         setLoading(false);
       },
       (err) => {
-        console.error('useMarshmallows: Subscription error:', err);
         setError(err);
         setLoading(false);
       }
     );
 
     return () => {
-      console.log('useMarshmallows: Cleaning up subscription');
       unsubscribe();
     };
   }, [coupleId]);
