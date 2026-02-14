@@ -80,6 +80,8 @@ export const subscribeToCoupleMarshmallows = (
   callback: (marshmallows: WithId<Marshmallow>[]) => void,
   onError?: (error: Error) => void
 ): Unsubscribe => {
+  console.log('subscribeToCoupleMarshmallows: Setting up subscription for coupleId:', coupleId);
+
   try {
     const q = query(
       collection(db, 'marshmallows'),
@@ -90,6 +92,7 @@ export const subscribeToCoupleMarshmallows = (
     return onSnapshot(
       q,
       (snapshot) => {
+        console.log('subscribeToCoupleMarshmallows: Snapshot received, doc count:', snapshot.docs.length);
         const marshmallows: WithId<Marshmallow>[] = snapshot.docs.map((doc) => {
           const data = doc.data();
           return {
@@ -110,6 +113,7 @@ export const subscribeToCoupleMarshmallows = (
             read: Boolean(data.read),
           };
         });
+        console.log('subscribeToCoupleMarshmallows: Calling callback with marshmallows:', marshmallows.length);
         callback(marshmallows);
       },
       (error) => {
