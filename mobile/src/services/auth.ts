@@ -148,7 +148,7 @@ const createOrUpdateUserProfile = async (
         settings: {
           morningCheckInTime: '09:00',
           eveningReminderTime: '20:00',
-          wifiOnlySync: false,
+          wifiOnlySync: Boolean(false),
         },
       };
 

@@ -62,7 +62,7 @@ export default function ProfileScreen() {
       // Set settings
       setMorningTime(userProfile.settings.morningCheckInTime);
       setEveningTime(userProfile.settings.eveningReminderTime);
-      setWifiOnly(userProfile.settings.wifiOnlySync);
+      setWifiOnly(Boolean(userProfile.settings.wifiOnlySync));
 
       // Get partner info
       const coupleRef = doc(db, 'couples', userProfile.coupleId);
@@ -140,7 +140,7 @@ export default function ProfileScreen() {
       await updateDoc(userRef, {
         'settings.morningCheckInTime': morningTime,
         'settings.eveningReminderTime': eveningTime,
-        'settings.wifiOnlySync': wifiOnly,
+        'settings.wifiOnlySync': Boolean(wifiOnly),
       });
       Alert.alert('Success', 'Settings saved successfully!');
     } catch (error) {

@@ -10,6 +10,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { useSendMarshmallow } from '../hooks/useMarshmallows';
 import { useQuickPicks } from '../hooks/useQuickPicks';
@@ -48,15 +49,40 @@ export const SendMarshmallowModal: React.FC<SendMarshmallowModalProps> = ({
       return;
     }
 
+    // Validate recipientId
+    if (!recipientId || recipientId === '') {
+      Alert.alert(
+        'Cannot Send',
+        'Could not find your partner. Please try restarting the app.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
     try {
       await sendMarshmallow(recipientId, customMessage, 'custom');
       handleClose();
     } catch (error) {
       console.error('Error sending custom marshmallow:', error);
+      Alert.alert(
+        'Failed to Send',
+        error instanceof Error ? error.message : 'Could not send marshmallow. Please check your connection and try again.',
+        [{ text: 'OK' }]
+      );
     }
   };
 
   const handleSendQuickPick = async (message: string) => {
+    // Validate recipientId
+    if (!recipientId || recipientId === '') {
+      Alert.alert(
+        'Cannot Send',
+        'Could not find your partner. Please try restarting the app.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
     try {
       await sendMarshmallow(recipientId, message, 'quick-pick', {
         quickPickId: message, // Using message as ID for simplicity
@@ -64,6 +90,11 @@ export const SendMarshmallowModal: React.FC<SendMarshmallowModalProps> = ({
       handleClose();
     } catch (error) {
       console.error('Error sending quick pick marshmallow:', error);
+      Alert.alert(
+        'Failed to Send',
+        error instanceof Error ? error.message : 'Could not send marshmallow. Please check your connection and try again.',
+        [{ text: 'OK' }]
+      );
     }
   };
 

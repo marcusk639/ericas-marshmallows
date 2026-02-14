@@ -28,6 +28,15 @@ export const sendMarshmallow = async (
     quickPickId?: string;
   }
 ): Promise<string> => {
+  console.log('sendMarshmallow called with:', {
+    coupleId,
+    senderId,
+    recipientId,
+    message: message.substring(0, 50),
+    type,
+    options,
+  });
+
   try {
     const marshmallowData = {
       coupleId,
@@ -38,14 +47,20 @@ export const sendMarshmallow = async (
       photoUrl: options?.photoUrl,
       quickPickId: options?.quickPickId,
       createdAt: serverTimestamp(),
-      read: false,
+      read: Boolean(false),
     };
 
+    console.log('Attempting to add marshmallow document...');
     const docRef = await addDoc(collection(db, 'marshmallows'), marshmallowData);
-    console.log('Successfully sent marshmallow:', docRef.id);
+    console.log('✅ Successfully sent marshmallow:', docRef.id);
     return docRef.id;
   } catch (error) {
-    console.error('Error sending marshmallow:', error);
+    console.error('❌ Error sending marshmallow:', error);
+    console.error('Error details:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      code: (error as any)?.code,
+    });
     throw new Error('Failed to send marshmallow. Please try again.');
   }
 };
@@ -86,7 +101,7 @@ export const subscribeToCoupleMarshmallows = (
                   nanoseconds: (data.createdAt as Timestamp).nanoseconds,
                 }
               : { seconds: 0, nanoseconds: 0 },
-            read: data.read,
+            read: Boolean(data.read),
           };
         });
         callback(marshmallows);
@@ -111,7 +126,7 @@ export const markMarshmallowAsRead = async (marshmallowId: string): Promise<void
   try {
     const marshmallowRef = doc(db, 'marshmallows', marshmallowId);
     await updateDoc(marshmallowRef, {
-      read: true,
+      read: Boolean(true),
     });
     console.log('Successfully marked marshmallow as read:', marshmallowId);
   } catch (error) {
