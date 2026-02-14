@@ -74,6 +74,15 @@ export default function MarshmallowsScreen() {
     }
   };
 
+  // Debug: Log render state
+  console.log('MarshmallowsScreen: Rendering with state:', {
+    loading,
+    marshmallowsCount: marshmallows.length,
+    coupleId,
+    currentUserId,
+    recipientId,
+  });
+
   // Show loading state
   if (loading && marshmallows.length === 0) {
     return (
