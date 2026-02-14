@@ -128,18 +128,23 @@ export default function MarshmallowsScreen() {
     );
   }
 
+  console.log('MarshmallowsScreen: Rendering FlatList with marshmallows:', marshmallows);
+
   return (
     <View style={styles.container}>
       <FlatList
         data={marshmallows}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <MarshmallowCard
-            marshmallow={item}
-            currentUserId={currentUserId || ''}
-            onPress={handleMarshmallowPress}
-          />
-        )}
+        renderItem={({ item }) => {
+          console.log('MarshmallowsScreen: Rendering marshmallow card:', item.id);
+          return (
+            <MarshmallowCard
+              marshmallow={item}
+              currentUserId={currentUserId || ''}
+              onPress={handleMarshmallowPress}
+            />
+          );
+        }}
         contentContainerStyle={styles.listContent}
         inverted
         showsVerticalScrollIndicator={false}
