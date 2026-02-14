@@ -40,7 +40,9 @@ export const useMarshmallows = (coupleId: string | null): UseMarshmallowsResult 
       coupleId,
       (newMarshmallows) => {
         console.log('useMarshmallows: Received marshmallows update:', newMarshmallows.length);
+        console.log('useMarshmallows: Marshmallow data:', JSON.stringify(newMarshmallows, null, 2));
         setMarshmallows(newMarshmallows);
+        console.log('useMarshmallows: State updated, calling setLoading(false)');
         setLoading(false);
       },
       (err) => {
