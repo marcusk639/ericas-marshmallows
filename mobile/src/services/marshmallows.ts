@@ -38,17 +38,23 @@ export const sendMarshmallow = async (
   });
 
   try {
-    const marshmallowData = {
+    const marshmallowData: any = {
       coupleId,
       senderId,
       recipientId,
       message,
       type,
-      photoUrl: options?.photoUrl,
-      quickPickId: options?.quickPickId,
       createdAt: serverTimestamp(),
       read: Boolean(false),
     };
+
+    // Only include optional fields if they have values
+    if (options?.photoUrl) {
+      marshmallowData.photoUrl = options.photoUrl;
+    }
+    if (options?.quickPickId) {
+      marshmallowData.quickPickId = options.quickPickId;
+    }
 
     console.log('Attempting to add marshmallow document...');
     const docRef = await addDoc(collection(db, 'marshmallows'), marshmallowData);
