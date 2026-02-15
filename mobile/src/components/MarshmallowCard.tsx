@@ -24,6 +24,9 @@ export const MarshmallowCard: React.FC<MarshmallowCardProps> = ({
       style={[styles.container, isSent ? styles.sentContainer : styles.receivedContainer]}
     >
       <View style={[styles.bubble, isSent ? styles.sentBubble : styles.receivedBubble]}>
+        <View style={styles.header}>
+          <Text style={styles.marshmallowIcon}>🍡</Text>
+        </View>
         <Text style={[styles.message, isSent ? styles.sentMessage : styles.receivedMessage]}>
           {marshmallow.message}
         </Text>
@@ -77,6 +80,12 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 4,
     borderWidth: 1,
     borderColor: '#F3F4F6',
+  },
+  header: {
+    marginBottom: 4,
+  },
+  marshmallowIcon: {
+    fontSize: 18,
   },
   message: {
     fontSize: 16,
