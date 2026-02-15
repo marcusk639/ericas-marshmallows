@@ -24,12 +24,12 @@ export const MarshmallowCard: React.FC<MarshmallowCardProps> = ({
       style={[styles.container, isSent ? styles.sentContainer : styles.receivedContainer]}
     >
       <View style={[styles.bubble, isSent ? styles.sentBubble : styles.receivedBubble]}>
-        <View style={styles.header}>
+        <View style={styles.contentRow}>
           <Text style={styles.marshmallowIcon}>🍡</Text>
+          <Text style={[styles.message, isSent ? styles.sentMessage : styles.receivedMessage]}>
+            {marshmallow.message}
+          </Text>
         </View>
-        <Text style={[styles.message, isSent ? styles.sentMessage : styles.receivedMessage]}>
-          {marshmallow.message}
-        </Text>
         <View style={styles.footer}>
           <Text style={[styles.timestamp, isSent ? styles.sentTimestamp : styles.receivedTimestamp]}>
             {getTimeAgo(marshmallow.createdAt)}
@@ -81,15 +81,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#F3F4F6',
   },
-  header: {
-    marginBottom: 4,
+  contentRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
   },
   marshmallowIcon: {
     fontSize: 18,
+    marginTop: 2,
   },
   message: {
     fontSize: 16,
     lineHeight: 22,
+    flex: 1,
   },
   sentMessage: {
     color: '#FFFFFF',
